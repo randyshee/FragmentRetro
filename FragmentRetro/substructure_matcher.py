@@ -87,7 +87,6 @@ class SubstructureMatcher:
                 idx = atom.GetAtomMapNum()
 
                 # Update SMARTS with explicit hydrogen count
-                print(smarts_with_indices)
                 smarts_with_indices = smarts_with_indices.replace(
                     # The '&' here is from `Chem.MolToSmarts(fragment_mol)`
                     f"[#{atom.GetAtomicNum()}&H{num_hydrogens}:{idx}]",
