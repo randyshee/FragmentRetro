@@ -129,26 +129,26 @@ def test_convert_to_smarts(case_number, fragment_smiles, expected_smarts, descri
     ), f"Case {case_number} failed: {description}. Fragment SMILES: {fragment_smiles}"
 
 
-# @pytest.mark.parametrize(
-#     "case_number, fragment_smiles, molecule_smiles, expected, description",
-#     [
-#         (
-#             tc["case_number"],
-#             tc["fragment_smiles"],
-#             tc["molecule_smiles"],
-#             tc["expected"],
-#             tc["description"],
-#         )
-#         for tc in TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE
-#     ],
-# )
-# def test_is_strict_substructure(
-#     case_number, fragment_smiles, molecule_smiles, expected, description
-# ):
-#     result = SubstructureMatcher.is_strict_substructure(
-#         fragment_smiles, molecule_smiles
-#     )
-#     assert result == expected, f"Case {case_number} failed: {description}"
+@pytest.mark.parametrize(
+    "case_number, fragment_smiles, molecule_smiles, expected, description",
+    [
+        (
+            tc["case_number"],
+            tc["fragment_smiles"],
+            tc["molecule_smiles"],
+            tc["expected"],
+            tc["description"],
+        )
+        for tc in TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE
+    ],
+)
+def test_is_strict_substructure(
+    case_number, fragment_smiles, molecule_smiles, expected, description
+):
+    result = SubstructureMatcher.is_strict_substructure(
+        fragment_smiles, molecule_smiles
+    )
+    assert result == expected, f"Case {case_number} failed: {description}"
 
 
 if __name__ == "__main__":
