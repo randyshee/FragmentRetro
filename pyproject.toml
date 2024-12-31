@@ -1,0 +1,33 @@
+[project]
+name = "retrosynthesis"
+version = "0.0.1"
+dependencies = [
+    "numpy==1.26.4",
+    "rdkit==2023.9.3",
+    "tqdm==4.67.1",
+    "networkx==3.4.2",
+    "matplotlib==3.10.0"
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "mkdocs==1.6.1",
+    "mkdocstrings-python==1.12.2",
+    "mkdocs-material==9.5.49",
+    "pytest==8.3.4",
+    "ruff==0.4.7",
+    "mypy==1.13.0",
+    "isort==5.13.2",
+    "typing-extensions==4.12.2",
+    "mypy-extensions==1.0.0",
+    "pre-commit==4.0.1"
+]
+
+[tool.mypy]
+strict = true
+ignore_missing_imports = true
+exclude = ["tests"]
+[[tool.mypy.overrides]]
+module = ["rdkit-stubs.*", "rdkit.*"]
+ignore_errors = true

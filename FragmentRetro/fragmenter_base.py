@@ -1,0 +1,229 @@
+import itertools
+from abc import ABC, abstractmethod
+from typing import cast
+
+import matplotlib.pyplot as plt
+import networkx as nx
+from rdkit import Chem
+from rdkit.Chem import Mol
+
+from .type_definitions import AtomMappingsType, BondsType
+
+
+class Fragmenter(ABC):
+    def __init__(self, smiles: str) -> None:
+        self.original_smiles: str = smiles
+        self.original_mol: Mol = Chem.MolFromSmiles(smiles)
+        self.fragmentation_bonds: BondsType = self._find_fragmentation_bonds(
+            self.original_mol
+        )
+        self.broken_mol: Mol = self._break_bonds(
+            self.original_mol, self.fragmentation_bonds
+        )
+        self.atom_mappings: AtomMappingsType = []
+        self.fragment_graph: nx.Graph = self._build_fragment_graph()
+        self.num_fragments: int = len(self.fragment_graph.nodes())
+
+    @abstractmethod
+    def _find_fragmentation_bonds(self, mol: Mol) -> BondsType:
+        pass
+
+    @abstractmethod
+    def _break_bonds(self, mol: Mol, bonds: BondsType) -> Mol:
+        pass
+
+    def _get_combination_smiles(self, combination: list[int]) -> str:
+        """
+        Get the fragment smiles given one combination.
+
+        Args:
+            combination: A combination as a sorted list of node IDs.
+
+        Returns:
+            A SMILES string representing the fragment combination.
+        """
+        if len(combination) == 0:
+            return ""
+        elif len(combination) == 1:
+            return cast(str, self.fragment_graph.nodes[combination[0]]["smiles"])
+        elif len(combination) == self.num_fragments:
+            return self.original_smiles
+        # remove the bonds that are within the fragment combination
+        bonds_to_break: BondsType = self.fragmentation_bonds.copy()
+        for pair in itertools.combinations(combination, 2):
+            edge_data = self.fragment_graph.get_edge_data(*pair)
+            if edge_data:
+                bonds_to_break.remove((edge_data["atoms"], edge_data["bond_type"]))
+        # break the bonds
+        comb_broken_mol = self._break_bonds(self.original_mol, bonds_to_break)
+        comb_atom_mappings: AtomMappingsType = []
+        mol_fragments: tuple[Mol] = Chem.GetMolFrags(
+            comb_broken_mol, asMols=True, fragsMolAtomMapping=comb_atom_mappings
+        )
+        # get the smiles with the atom mapping that contains the first atom of the combination
+        # first atom is chosen since it is always not the bond break (i.e. any or *) atom
+        for i, mol in enumerate(mol_fragments):
+            if self.atom_mappings[combination[0]][0] in comb_atom_mappings[i]:
+                comb_smiles = Chem.MolToSmiles(mol)
+                break
+        return cast(str, comb_smiles)
+
+    def _build_fragment_graph(self) -> nx.Graph:
+        """
+        Build graph representing fragment connectivity.
+        Nodes are fragments with their SMILES and atom mappings.
+        Edges contain bond type information.
+        Uses Graph to support only one edge between fragments.
+
+        Returns:
+            NetworkX Graph representing fragment connectivity
+        """
+        G = nx.Graph()
+
+        mol_fragments: tuple[Mol] = Chem.GetMolFrags(
+            self.broken_mol, asMols=True, fragsMolAtomMapping=self.atom_mappings
+        )
+
+        atom_to_frag = {}
+        for frag_id, atom_indices in enumerate(self.atom_mappings):
+            for atom_idx in atom_indices:
+                atom_to_frag[atom_idx] = frag_id
+
+        for i, fragment in enumerate(mol_fragments):
+            G.add_node(
+                i, smiles=Chem.MolToSmiles(fragment), atom_indices=self.atom_mappings[i]
+            )
+
+        edge_index = 0
+        for (atom1, atom2), (type1, type2) in self.fragmentation_bonds:
+            frag1 = atom_to_frag.get(atom1)
+            frag2 = atom_to_frag.get(atom2)
+
+            if frag1 != frag2 and frag1 is not None and frag2 is not None:
+                if not G.has_edge(frag1, frag2):
+                    G.add_edge(
+                        frag1,
+                        frag2,
+                        bond_type=(type1, type2),
+                        atoms=(atom1, atom2),
+                        edge_index=edge_index,
+                    )
+                    edge_index += 1
+
+        return G
+
+    def _get_initial_fragments(self) -> list[str]:
+        """
+        Retrieve the initial fragments as SMILES strings from the fragment graph.
+
+        Returns:
+            List of SMILES strings representing the initial fragments.
+        """
+        return [
+            self.fragment_graph.nodes[node]["smiles"]
+            for node in self.fragment_graph.nodes()
+        ]
+
+    def visualize(
+        self,
+        figsize: tuple[float, float] = (10.0, 10.0),
+        verbose: bool = False,
+        with_indices: bool = False,
+    ) -> None:
+        """
+        Visualize the fragment graph and optionally print detailed information.
+        Handles multiple edges between nodes.
+        """
+        pos = nx.spring_layout(self.fragment_graph)
+        plt.figure(figsize=figsize)
+
+        # Draw nodes
+        nx.draw_networkx_nodes(
+            self.fragment_graph, pos, node_color="lightblue", node_size=2000
+        )
+
+        # Draw edges without curves since we only have single edges
+        for edge in self.fragment_graph.edges(data=True):
+            u, v, data = edge
+            nx.draw_networkx_edges(
+                self.fragment_graph,
+                pos,
+                edgelist=[(u, v)],
+            )
+
+        # Add node labels
+        labels = {
+            node: f"Node {node}: {data['smiles']}" if with_indices else data["smiles"]
+            for node, data in self.fragment_graph.nodes(data=True)
+        }
+        nx.draw_networkx_labels(self.fragment_graph, pos, labels)
+
+        # Add edge labels
+        edge_labels = {
+            (u, v): f"Edge {data['edge_index']} ({u}-{v}): {data['bond_type']}"
+            if with_indices
+            else f"{data['bond_type']}"
+            for u, v, data in self.fragment_graph.edges(data=True)
+        }
+
+        for (u, v), label in edge_labels.items():
+            x = (pos[u][0] + pos[v][0]) / 2
+            y = (pos[u][1] + pos[v][1]) / 2
+            plt.text(
+                x,
+                y,
+                label,
+                bbox=dict(facecolor="white", edgecolor="none", alpha=0.7),
+                horizontalalignment="center",
+                verticalalignment="center",
+            )
+
+        plt.title("Fragment Connectivity Graph")
+        plt.axis("off")
+        plt.show()
+
+        if verbose:
+            print("\nNode data:")
+            for node in self.fragment_graph.nodes():
+                print(f"\nNode {node}:")
+                print(f"SMILES: {self.fragment_graph.nodes[node]['smiles']}")
+                print(
+                    f"Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}"
+                )
+
+            print("\nEdge data:")
+            for u, v, data in self.fragment_graph.edges(data=True):
+                print(f"\nEdge {data['edge_index']} ({u}-{v}):")
+                print(f"Bond type: {data['bond_type']}")
+                print(f"Atoms: {data['atoms']}")
+
+    def _get_length_n_combinations(self, n: int) -> set[list[int]]:
+        """
+        Get all unique combinations of n fragments in the fragment graph.
+
+        Args:
+            n: Length of combinations to find
+
+        Returns:
+            Set of unique combinations as sorted lists of node IDs
+        """
+        all_combinations = set()
+
+        def dfs(path: list[int]) -> None:
+            if len(path) == n:
+                all_combinations.add(sorted(path))  # Sort before adding
+                return
+            last_node = path[-1]
+            for neighbor in self.fragment_graph.neighbors(last_node):
+                if neighbor not in path:
+                    dfs(path + [neighbor])
+
+        for node in self.fragment_graph.nodes:
+            dfs([node])
+
+        return all_combinations
+
+    # def _get_effective_length_n_combinations(self) -> list[str]:
+    #     # TODO: get effective combinations from the stored valid/invalid combinations
+    #     # or maybe this could be check effective combination?
+    #     pass
