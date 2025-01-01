@@ -50,53 +50,52 @@ class SubstructureMatcher:
         smarts = re.sub(r"\[\d*\#0\]", "*", smarts)
         return cast(str, smarts)
 
-    # @staticmethod
-    # def addH_to_wildcard_neighbors(fragment_smarts: str) -> str:
-    #     """
-    #     Adjust SMARTS by adding hydrogens to neighbors of wildcard atoms (*).
+    @staticmethod
+    def addH_to_wildcard_neighbors(fragment_smarts: str) -> str:
+        """
+        Adjust SMARTS by adding hydrogens to neighbors of wildcard atoms (*).
 
-    #     Args:
-    #         fragment_smarts: Fragment SMARTS string.
+        Args:
+            fragment_smarts: Fragment SMARTS string.
 
-    #     Returns:
-    #         Adjusted SMARTS string with explicit hydrogen counts for neighbors of wildcards.
-    #     """
-    #     # TODO: make sure this works properly and see if we want to merge this with convert_to_smarts
+        Returns:
+            Adjusted SMARTS string with explicit hydrogen counts for neighbors of wildcards.
+        """
+        # TODO: make sure this works properly and see if we want to merge this with convert_to_smarts
 
-    #     # Convert SMARTS to molecule
-    #     fragment_mol = Chem.MolFromSmarts(fragment_smarts)
-    #     if fragment_mol is None:
-    #         raise ValueError(f"Invalid SMARTS string: {fragment_smarts}")
+        # Convert SMARTS to molecule
+        fragment_mol = Chem.MolFromSmarts(fragment_smarts)
+        if fragment_mol is None:
+            raise ValueError(f"Invalid SMARTS string: {fragment_smarts}")
 
-    #     # Assign map indices to each atom
-    #     for i, atom in enumerate(fragment_mol.GetAtoms()):
-    #         atom.SetAtomMapNum(i + 1)
+        # Assign map indices to each atom
+        for i, atom in enumerate(fragment_mol.GetAtoms()):
+            atom.SetAtomMapNum(i + 1)
 
-    #     # Convert molecule back to SMARTS with indices
-    #     smarts_with_indices = Chem.MolToSmarts(fragment_mol)
+        # Convert molecule back to SMARTS with indices
+        smarts_with_indices = Chem.MolToSmarts(fragment_mol)
 
-    #     for atom in fragment_mol.GetAtoms():
-    #         if atom.GetAtomicNum() == 0:  # Wildcard atom (*)
-    #             addH = False
-    #             for neighbor in atom.GetNeighbors():
-    #                 if neighbor.GetSymbol() == "*":  # Neighbor is also wildcard
-    #                     addH = True
-    #                     break
+        for atom in fragment_mol.GetAtoms():
+            addH = False
+            for neighbor in atom.GetNeighbors():
+                if neighbor.GetSymbol() == "*":  # Neighbor is also wildcard
+                    addH = True
+                    break
 
-    #             if addH:
-    #                 # Calculate total hydrogens including the additional one
-    #                 num_hydrogens = atom.GetTotalNumHs()
-    #                 idx = atom.GetAtomMapNum()
+            if addH:
+                num_hydrogens = atom.GetTotalNumHs()
+                idx = atom.GetAtomMapNum()
 
-    #                 # Update SMARTS with explicit hydrogen count
-    #                 smarts_with_indices = smarts_with_indices.replace(
-    #                     f"[#{atom.GetAtomicNum()}:{idx}]",
-    #                     f"[#{atom.GetAtomicNum()}H{num_hydrogens+1}:{idx}]"
-    #                 )
+                # Update SMARTS with explicit hydrogen count
+                smarts_with_indices = smarts_with_indices.replace(
+                    # The '&' here is from `Chem.MolToSmarts(fragment_mol)`
+                    f"[#{atom.GetAtomicNum()}&H{num_hydrogens}:{idx}]",
+                    f"[#{atom.GetAtomicNum()}H{num_hydrogens+1}:{idx}]",
+                )
 
-    #     # Remove atom map indices
-    #     adjusted_smarts = re.sub(r":\d+\]", "]", smarts_with_indices)
-    #     return adjusted_smarts
+        # Remove atom map indices
+        adjusted_smarts = re.sub(r":\d+\]", "]", smarts_with_indices)
+        return adjusted_smarts
 
     @staticmethod
     def is_strict_substructure(fragment_smiles: str, molecule_smiles: str) -> bool:
@@ -116,20 +115,23 @@ class SubstructureMatcher:
         # hydrogen counts are explicitly specified to strictly match the fragment
         fragment_smarts = SubstructureMatcher.convert_to_smarts(fragment_smiles)
         # Add hydrogen atoms to wildcard neighbors to ensure hydrogen atoms can match with wildcard atoms
-        # fragment_smarts_withH = SubstructureMatcher.addH_to_wildcard_neighbors(fragment_smarts)
+        fragment_smarts_withH = SubstructureMatcher.addH_to_wildcard_neighbors(
+            fragment_smarts
+        )
 
         # Convert molecule SMILES to RDKit molecule object
         fragment_mol = Chem.MolFromSmarts(fragment_smarts)
-        # fragment_mol_withH = Chem.MolFromSmarts(fragment_smarts_withH)
+        fragment_mol_withH = Chem.MolFromSmarts(fragment_smarts_withH)
         molecule_mol = Chem.MolFromSmiles(molecule_smiles)
         # to make sure hydrogen atoms can match with wildcard atoms
         molecule_mol = Chem.AddHs(molecule_mol)
 
         if molecule_mol is None:
             raise ValueError(f"Invalid SMILES string: {molecule_smiles}")
-        return cast(bool, fragment_mol.HasSubstructMatch(molecule_mol))
-        # TODO: test the next line
-        # return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol)) or cast(bool, molecule_mol.HasSubstructMatch(fragment_mol_withH))
+        # return cast(bool, fragment_mol.HasSubstructMatch(molecule_mol))
+        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol)) or cast(
+            bool, molecule_mol.HasSubstructMatch(fragment_mol_withH)
+        )
 
     def is_substructure_BBs(self, fragment: str) -> bool:
         """
