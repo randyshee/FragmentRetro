@@ -5,7 +5,7 @@ If you need other packages to run your features, you must specify the dependency
 
 ### Set Up
 ```bash
-uv venv venv --python 3.11.4
+uv venv --python 3.11.4
 ```
 
 which will create a new virtual environment (in the folder `venv` which is already gitignored).
@@ -13,7 +13,7 @@ which will create a new virtual environment (in the folder `venv` which is alrea
 Activate the environment:
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 and install all dependencies (specified in [pyproject.toml](./pyproject.toml)):
