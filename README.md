@@ -19,7 +19,7 @@ source .venv/bin/activate
 and install all dependencies (specified in [pyproject.toml](./pyproject.toml)):
 
 ```bash
-uv pip install ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 If you need to use jupyter notebook:
@@ -61,3 +61,6 @@ Python 3.5 introduced type annotations ([PEP 484](https://peps.python.org/pep-04
 - DOCS: - any changes to readme, comments, docstrings etc
 - STYLE: any style improvements, like refactoring, adding type hints, better namings etc
 - DEV: intermediate commits, ideally these are on non-main branch. Basically every code after FEAT/FIX/DOCS/STYLE should be assumed to work correctly (to the best of your knowledge). DEV Is commits you do when working towards something that will become a FEAT/FIX on a main
+
+## Acknowledgement
+We made slight modifications to the project workflow, MkDocs setup, developer guides, and logging practices introduced by [Anton Morgunov](https://github.com/anmorgunov).

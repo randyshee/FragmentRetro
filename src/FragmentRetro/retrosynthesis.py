@@ -3,9 +3,7 @@ from FragmentRetro.substructure_matcher import SubstructureMatcher
 
 
 class Retrosynthesis:
-    def __init__(
-        self, fragmenter: Fragmenter, substructure_matcher: SubstructureMatcher
-    ):
+    def __init__(self, fragmenter: Fragmenter, substructure_matcher: SubstructureMatcher):
         self.fragmenter = fragmenter
         self.matcher = substructure_matcher
 
