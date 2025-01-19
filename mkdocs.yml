@@ -6,7 +6,11 @@ theme:
 
 plugins:
 - search
-- mkdocstrings
+- mkdocstrings:
+    handlers:
+            python:
+              paths:
+                - src
 
 markdown_extensions:
   - pymdownx.highlight:
