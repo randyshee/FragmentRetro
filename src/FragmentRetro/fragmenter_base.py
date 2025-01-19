@@ -7,6 +7,7 @@ import networkx as nx
 from rdkit import Chem
 from rdkit.Chem import Mol
 
+from FragmentRetro.logging_config import logger
 from FragmentRetro.type_definitions import AtomMappingsType, BondsType
 
 
@@ -14,12 +15,8 @@ class Fragmenter(ABC):
     def __init__(self, smiles: str) -> None:
         self.original_smiles: str = smiles
         self.original_mol: Mol = Chem.MolFromSmiles(smiles)
-        self.fragmentation_bonds: BondsType = self._find_fragmentation_bonds(
-            self.original_mol
-        )
-        self.broken_mol: Mol = self._break_bonds(
-            self.original_mol, self.fragmentation_bonds
-        )
+        self.fragmentation_bonds: BondsType = self._find_fragmentation_bonds(self.original_mol)
+        self.broken_mol: Mol = self._break_bonds(self.original_mol, self.fragmentation_bonds)
         self.atom_mappings: AtomMappingsType = []
         self.fragment_graph: nx.Graph = self._build_fragment_graph()
         self.num_fragments: int = len(self.fragment_graph.nodes())
@@ -90,9 +87,7 @@ class Fragmenter(ABC):
                 atom_to_frag[atom_idx] = frag_id
 
         for i, fragment in enumerate(mol_fragments):
-            G.add_node(
-                i, smiles=Chem.MolToSmiles(fragment), atom_indices=self.atom_mappings[i]
-            )
+            G.add_node(i, smiles=Chem.MolToSmiles(fragment), atom_indices=self.atom_mappings[i])
 
         edge_index = 0
         for (atom1, atom2), (type1, type2) in self.fragmentation_bonds:
@@ -119,15 +114,11 @@ class Fragmenter(ABC):
         Returns:
             List of SMILES strings representing the initial fragments.
         """
-        return [
-            self.fragment_graph.nodes[node]["smiles"]
-            for node in self.fragment_graph.nodes()
-        ]
+        return [self.fragment_graph.nodes[node]["smiles"] for node in self.fragment_graph.nodes()]
 
     def visualize(
         self,
         figsize: tuple[float, float] = (10.0, 10.0),
-        verbose: bool = False,
         with_indices: bool = False,
     ) -> None:
         """
@@ -138,9 +129,7 @@ class Fragmenter(ABC):
         plt.figure(figsize=figsize)
 
         # Draw nodes
-        nx.draw_networkx_nodes(
-            self.fragment_graph, pos, node_color="lightblue", node_size=2000
-        )
+        nx.draw_networkx_nodes(self.fragment_graph, pos, node_color="lightblue", node_size=2000)
 
         # Draw edges without curves since we only have single edges
         for edge in self.fragment_graph.edges(data=True):
@@ -182,20 +171,17 @@ class Fragmenter(ABC):
         plt.axis("off")
         plt.show()
 
-        if verbose:
-            print("\nNode data:")
-            for node in self.fragment_graph.nodes():
-                print(f"\nNode {node}:")
-                print(f"SMILES: {self.fragment_graph.nodes[node]['smiles']}")
-                print(
-                    f"Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}"
-                )
+        logger.info("\nNode data:")
+        for node in self.fragment_graph.nodes():
+            logger.info(f"\nNode {node}:")
+            logger.info(f"SMILES: {self.fragment_graph.nodes[node]['smiles']}")
+            logger.info(f"Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}")
 
-            print("\nEdge data:")
-            for u, v, data in self.fragment_graph.edges(data=True):
-                print(f"\nEdge {data['edge_index']} ({u}-{v}):")
-                print(f"Bond type: {data['bond_type']}")
-                print(f"Atoms: {data['atoms']}")
+        logger.info("\nEdge data:")
+        for u, v, data in self.fragment_graph.edges(data=True):
+            logger.info(f"\nEdge {data['edge_index']} ({u}-{v}):")
+            logger.info(f"Bond type: {data['bond_type']}")
+            logger.info(f"Atoms: {data['atoms']}")
 
     def _get_length_n_combinations(self, n: int) -> set[list[int]]:
         """

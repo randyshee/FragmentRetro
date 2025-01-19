@@ -1,12 +1,13 @@
 [project]
-name = "retrosynthesis"
+name = "fragment"
 version = "0.0.1"
 dependencies = [
     "numpy==1.26.4",
     "rdkit==2023.9.3",
     "tqdm==4.67.1",
     "networkx==3.4.2",
-    "matplotlib==3.10.0"
+    "matplotlib==3.10.0",
+    "tomli>=2.2.1",
 ]
 
 
@@ -28,6 +29,28 @@ dev = [
 strict = true
 ignore_missing_imports = true
 exclude = ["tests"]
+disable_error_code = ["unused-ignore"]
 [[tool.mypy.overrides]]
 module = ["rdkit-stubs.*", "rdkit.*"]
 ignore_errors = true
+
+[tool.ruff]
+line-length = 120
+
+[tool.logging]
+version = 1
+disable_existing_loggers = false
+
+[tool.logging.formatters.standard]
+format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+datefmt = "%Y-%m-%d %H:%M:%S"
+
+[tool.logging.handlers.console]
+class = "logging.StreamHandler"
+formatter = "standard"
+stream = "ext://sys.stdout"
+
+[tool.logging.loggers.fragment]
+handlers = ["console"]
+propagate = false
+level = "INFO"

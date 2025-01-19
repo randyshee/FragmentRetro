@@ -115,9 +115,7 @@ class SubstructureMatcher:
         # hydrogen counts are explicitly specified to strictly match the fragment
         fragment_smarts = SubstructureMatcher.convert_to_smarts(fragment_smiles)
         # Add hydrogen atoms to wildcard neighbors to ensure hydrogen atoms can match with wildcard atoms
-        fragment_smarts_withH = SubstructureMatcher.addH_to_wildcard_neighbors(
-            fragment_smarts
-        )
+        fragment_smarts_withH = SubstructureMatcher.addH_to_wildcard_neighbors(fragment_smarts)
 
         # Convert molecule SMILES to RDKit molecule object
         fragment_mol = Chem.MolFromSmarts(fragment_smarts)
