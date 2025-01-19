@@ -3,8 +3,8 @@
 from rdkit.Chem import Mol
 from rdkit.Chem.BRICS import BreakBRICSBonds, FindBRICSBonds
 
-from .fragmenter_base import Fragmenter
-from .type_definitions import BondsType
+from FragmentRetro.fragmenter_base import Fragmenter
+from FragmentRetro.type_definitions import BondsType
 
 
 class BRICSFragmenter(Fragmenter):

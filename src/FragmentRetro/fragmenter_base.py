@@ -7,7 +7,7 @@ import networkx as nx
 from rdkit import Chem
 from rdkit.Chem import Mol
 
-from .type_definitions import AtomMappingsType, BondsType
+from FragmentRetro.type_definitions import AtomMappingsType, BondsType
 
 
 class Fragmenter(ABC):
