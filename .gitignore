@@ -43,3 +43,4 @@ htmlcov/
 
 # Local
 .DS_Store
+site/
