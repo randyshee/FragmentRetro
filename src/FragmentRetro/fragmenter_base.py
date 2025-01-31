@@ -8,7 +8,7 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 
 from FragmentRetro.logging_config import logger
-from FragmentRetro.type_definitions import AtomMappingsType, BondsType
+from FragmentRetro.type_definitions import AtomMappingsType, BondsType, CombType
 
 
 class Fragmenter(ABC):
@@ -29,7 +29,7 @@ class Fragmenter(ABC):
     def _break_bonds(self, mol: Mol, bonds: BondsType) -> Mol:
         pass
 
-    def _get_combination_smiles(self, combination: list[int]) -> str:
+    def _get_combination_smiles(self, combination: CombType) -> str:
         """
         Get the fragment smiles given one combination.
 
@@ -183,7 +183,7 @@ class Fragmenter(ABC):
             logger.info(f"Bond type: {data['bond_type']}")
             logger.info(f"Atoms: {data['atoms']}")
 
-    def _get_length_n_combinations(self, n: int) -> set[list[int]]:
+    def _get_length_n_combinations(self, n: int) -> set[CombType]:
         """
         Get all unique combinations of n fragments in the fragment graph.
 
@@ -197,7 +197,8 @@ class Fragmenter(ABC):
 
         def dfs(path: list[int]) -> None:
             if len(path) == n:
-                all_combinations.add(sorted(path))  # Sort before adding
+                sorted_path = cast(CombType, sorted(path))
+                all_combinations.add(sorted_path)  # Sort before adding
                 return
             last_node = path[-1]
             for neighbor in self.fragment_graph.neighbors(last_node):

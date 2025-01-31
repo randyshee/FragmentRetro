@@ -27,3 +27,6 @@ BondsType: TypeAlias = list[BondType]
         - BondsType
         - AtomMappingType
         - AtomMappingsType
+        - CombType
+        - StageCombDictType
+        - CombBBsDictType

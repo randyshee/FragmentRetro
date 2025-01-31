@@ -11,3 +11,14 @@ BondsType: TypeAlias = list[BondType]
 # Example: (0, 1, 2, 7)
 AtomMappingType: TypeAlias = tuple[int, ...]
 AtomMappingsType: TypeAlias = list[AtomMappingType]
+
+# Combination type: list of fragment indices
+CombType: TypeAlias = tuple[int]
+
+# Store the combinations for each stage
+# Example: {1: [[0, 1], [2, 3]]} ({stage number: list[CombType]})
+# This can hold all combinations or effective combinations
+StageCombDictType: TypeAlias = dict[int, list[CombType]]
+
+# Store the building blocks for each combination
+CombBBsDictType: TypeAlias = dict[CombType, set[str]]
