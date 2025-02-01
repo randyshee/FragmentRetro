@@ -1,6 +1,11 @@
 import itertools
 from itertools import chain
 
+from PIL import Image
+from rdkit import Chem
+from rdkit.Chem import Draw
+
+from FragmentRetro.logging_config import logger
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.type_definitions import CombType, SolutionType
 
@@ -8,6 +13,7 @@ from FragmentRetro.type_definitions import CombType, SolutionType
 class RetrosynthesisSolution:
     def __init__(self, retrosynthesis: Retrosynthesis):
         self.retrosynthesis = retrosynthesis
+        self.fragmenter = retrosynthesis.fragmenter
         self.solutions: list[SolutionType] = []
         self.valid_combinations = list(chain.from_iterable(retrosynthesis.valid_combinations_dict.values()))
         self.num_fragments = retrosynthesis.fragmenter.num_fragments
@@ -44,8 +50,20 @@ class RetrosynthesisSolution:
         """Fill the solutions list with all possible solutions."""
         self.solutions = self.get_solutions(self.valid_combinations, self.num_fragments)
 
-    # def sort_solutions_by_len(self):
-    #     return sorted(self.solutions, key=lambda x: len(x))
-
-    # def visualize_solutions(self) -> None:
-    #     pass
+    def visualize_solutions(
+        self, solutions: list[SolutionType], molsPerRow: int = 3, subImgSize: tuple[float, float] = (200, 200)
+    ) -> list[Image.Image]:
+        all_img = []
+        for solution in solutions:
+            logger.info(f"Solution: {solution}")
+            all_smiles = []
+            for comb in solution:
+                smiles = self.fragmenter._get_combination_smiles(comb)
+                all_smiles.append(smiles)
+            logger.info(f"SMILES: {all_smiles}")
+            # Convert SMILES to RDKit molecules
+            mols = [Chem.MolFromSmiles(smiles) for smiles in all_smiles]
+            # Draw molecules in a grid
+            img = Draw.MolsToGridImage(mols, molsPerRow=molsPerRow, subImgSize=subImgSize, legends=all_smiles)
+            all_img.append(img)
+        return all_img
