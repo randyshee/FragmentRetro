@@ -24,12 +24,6 @@ and install all dependencies (specified in [pyproject.toml](./pyproject.toml)):
 uv pip install -e ".[dev]"
 ```
 
-If you need to use jupyter notebook:
-
-```bash
-uv pip install ipykernel
-```
-
 ### Cloning & Setting Pre-commits
 
 1. Clone the repository.
