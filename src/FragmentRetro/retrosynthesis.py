@@ -1,11 +1,15 @@
 from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.substructure_matcher import SubstructureMatcher
+from FragmentRetro.type_definitions import CombBBsDictType, StageCombDictType
+
+# from FragmentRetro.substructure_matcher import SubstructureMatcher
 
 
 class Retrosynthesis:
-    def __init__(self, fragmenter: Fragmenter, substructure_matcher: SubstructureMatcher):
+    def __init__(self, fragmenter: Fragmenter):
         self.fragmenter = fragmenter
-        self.matcher = substructure_matcher
+        self.valid_combinations_dict: StageCombDictType = {}
+        self.invalid_combinations_dict: StageCombDictType = {}
+        self.comb_bbs_dict: CombBBsDictType = {}
 
     # def fragment_retrosynthesis(self, stage: int = 1) -> list[set[list[int]]]:
     #     """
@@ -17,6 +21,7 @@ class Retrosynthesis:
     #     Returns:
     #         List of sets of fragment combinations.
     #     """
+    #     matcher = substructure_matcher # new matcher for each stage?
     #     if stage == 1:
     #         fragments = self.fragmenter._get_initial_fragments()
     #         for fragment in fragments:

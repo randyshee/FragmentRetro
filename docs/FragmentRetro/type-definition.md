@@ -10,6 +10,7 @@ def _find_fragmentation_bonds(mol: Mol) -> BondsType:
 ```
 
 where `BondsType` is defined in [type_definitions.py](/src/FragmentRetro/type_definitions.py) as:
+
 ```python
 BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
 BondsType: TypeAlias = list[BondType]
@@ -27,3 +28,6 @@ BondsType: TypeAlias = list[BondType]
         - BondsType
         - AtomMappingType
         - AtomMappingsType
+        - CombType
+        - StageCombDictType
+        - CombBBsDictType

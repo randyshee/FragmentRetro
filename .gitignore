@@ -44,3 +44,5 @@ htmlcov/
 # Local
 .DS_Store
 site/
+ChEMBL/
+r-BRICS/

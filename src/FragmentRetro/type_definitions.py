@@ -5,9 +5,21 @@ from typing_extensions import TypeAlias
 # Bond type (from BRICS): ((atom1_idx, atom2_idx), (type1, type2))
 # Example: ((3, 2), ('3', '4'))
 BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
-BondsType: TypeAlias = list[BondType]
 
 # Atom mapping type: tuple of atom indices
 # Example: (0, 1, 2, 7)
 AtomMappingType: TypeAlias = tuple[int, ...]
-AtomMappingsType: TypeAlias = list[AtomMappingType]
+
+# Combination type: list of fragment indices
+CombType: TypeAlias = list[int]
+
+# Solution type: list of combination types
+SolutionType: TypeAlias = list[CombType]
+
+# Store the combinations for each stage
+# Example: {1: [[0, 1], [2, 3]]} ({stage number: list[CombType]})
+# This can hold all combinations or effective combinations
+StageCombDictType: TypeAlias = dict[int, list[CombType]]
+
+# Store the building blocks for each combination
+CombBBsDictType: TypeAlias = dict[CombType, set[str]]

@@ -1,9 +1,11 @@
 # FragmentRetro
 
 ## Development
+
 If you need other packages to run your features, you must specify the dependency in [pyproject.toml](./pyproject.toml) and the version used.
 
 ### Set Up
+
 ```bash
 uv venv --python 3.11.4
 ```
@@ -20,11 +22,6 @@ and install all dependencies (specified in [pyproject.toml](./pyproject.toml)):
 
 ```bash
 uv pip install -e ".[dev]"
-```
-
-If you need to use jupyter notebook:
-```bash
-uv pip install ipykernel
 ```
 
 ### Cloning & Setting Pre-commits
@@ -63,4 +60,5 @@ Python 3.5 introduced type annotations ([PEP 484](https://peps.python.org/pep-04
 - DEV: intermediate commits, ideally these are on non-main branch. Basically every code after FEAT/FIX/DOCS/STYLE should be assumed to work correctly (to the best of your knowledge). DEV Is commits you do when working towards something that will become a FEAT/FIX on a main
 
 ## Acknowledgement
+
 We made slight modifications to the project workflow, MkDocs setup, developer guides, and logging practices introduced by [Anton Morgunov](https://github.com/anmorgunov).

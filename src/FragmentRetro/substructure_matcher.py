@@ -131,15 +131,14 @@ class SubstructureMatcher:
             bool, molecule_mol.HasSubstructMatch(fragment_mol_withH)
         )
 
-    def is_substructure_BBs(self, fragment: str) -> bool:
+    def get_substructure_BBs(self, fragment: str) -> set[str]:
         """
-        Check if the fragment matches any of the building blocks (BBs).
+        Get the set of building blocks (BBs) that the fragment matches.
 
         Args:
             fragment: SMILES string of the fragment.
 
         Returns:
-            True if the fragment matches any building block, False otherwise.
+            Set of building block SMILES strings that the fragment matches.
         """
-        # TODO: implementation for fingerprint screen-out
-        return any(self.is_strict_substructure(fragment, bb) for bb in self.BBs)
+        return set(bb for bb in self.BBs if self.is_strict_substructure(fragment, bb))
