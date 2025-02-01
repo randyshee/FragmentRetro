@@ -33,6 +33,19 @@ TEST_CASES_FOR_GET_SOLUTIONS = [
         "expected_solution": [[[0, 1, 2], [3]], [[0], [1, 2], [3]], [[0, 1], [2], [3]], [[0], [1], [2], [3]]],
         "description": "Some possible combinations for 4 fragments",
     },
+    {
+        "case_number": 5,
+        "valid_combinations": [[0], [1], [2], [3], [4], [0, 1], [1, 2], [0, 1, 2], [0, 1, 2, 3]],
+        "num_fragments": 5,
+        "expected_solution": [
+            [[0, 1, 2, 3], [4]],
+            [[0, 1, 2], [3], [4]],
+            [[0], [1, 2], [3], [4]],
+            [[0, 1], [2], [3], [4]],
+            [[0], [1], [2], [3], [4]],
+        ],
+        "description": "Some possible combinations for 4 fragments",
+    },
 ]
 
 
