@@ -17,7 +17,7 @@ CombType: TypeAlias = list[int]
 SolutionType: TypeAlias = list[CombType]
 
 # Store the combinations for each stage
-# Example: {1: [{0, 1}, {2, 3}]} ({stage number: list[CombType]})
+# Example: {1: [[0, 1], [2, 3]]} ({stage number: list[CombType]})
 # This can hold all combinations or effective combinations
 StageCombDictType: TypeAlias = dict[int, list[CombType]]
 
