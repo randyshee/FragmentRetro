@@ -8,25 +8,25 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 
 from FragmentRetro.logging_config import logger
-from FragmentRetro.type_definitions import AtomMappingsType, BondsType, CombType
+from FragmentRetro.type_definitions import AtomMappingType, BondType, CombType
 
 
 class Fragmenter(ABC):
     def __init__(self, smiles: str) -> None:
         self.original_smiles: str = smiles
         self.original_mol: Mol = Chem.MolFromSmiles(smiles)
-        self.fragmentation_bonds: BondsType = self._find_fragmentation_bonds(self.original_mol)
+        self.fragmentation_bonds: list[BondType] = self._find_fragmentation_bonds(self.original_mol)
         self.broken_mol: Mol = self._break_bonds(self.original_mol, self.fragmentation_bonds)
-        self.atom_mappings: AtomMappingsType = []
+        self.atom_mappings: list[AtomMappingType] = []
         self.fragment_graph: nx.Graph = self._build_fragment_graph()
         self.num_fragments: int = len(self.fragment_graph.nodes())
 
     @abstractmethod
-    def _find_fragmentation_bonds(self, mol: Mol) -> BondsType:
+    def _find_fragmentation_bonds(self, mol: Mol) -> list[BondType]:
         pass
 
     @abstractmethod
-    def _break_bonds(self, mol: Mol, bonds: BondsType) -> Mol:
+    def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
         pass
 
     def _get_combination_smiles(self, combination: CombType) -> str:
@@ -46,14 +46,14 @@ class Fragmenter(ABC):
         elif len(combination) == self.num_fragments:
             return self.original_smiles
         # remove the bonds that are within the fragment combination
-        bonds_to_break: BondsType = self.fragmentation_bonds.copy()
+        bonds_to_break: list[BondType] = self.fragmentation_bonds.copy()
         for pair in itertools.combinations(combination, 2):
             edge_data = self.fragment_graph.get_edge_data(*pair)
             if edge_data:
                 bonds_to_break.remove((edge_data["atoms"], edge_data["bond_type"]))
         # break the bonds
         comb_broken_mol = self._break_bonds(self.original_mol, bonds_to_break)
-        comb_atom_mappings: AtomMappingsType = []
+        comb_atom_mappings: list[AtomMappingType] = []
         mol_fragments: tuple[Mol] = Chem.GetMolFrags(
             comb_broken_mol, asMols=True, fragsMolAtomMapping=comb_atom_mappings
         )

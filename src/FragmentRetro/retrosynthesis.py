@@ -7,9 +7,9 @@ class Retrosynthesis:
     def __init__(self, fragmenter: Fragmenter, substructure_matcher: SubstructureMatcher):
         self.fragmenter = fragmenter
         self.matcher = substructure_matcher
-        self.valid_combinations: StageCombDictType = {}
-        self.invalid_combinations: StageCombDictType = {}
-        self.comb_bbs: CombBBsDictType = {}
+        self.valid_combinations_dict: StageCombDictType = {}
+        self.invalid_combinations_dict: StageCombDictType = {}
+        self.comb_bbs_dict: CombBBsDictType = {}
 
     # def fragment_retrosynthesis(self, stage: int = 1) -> list[set[list[int]]]:
     #     """
