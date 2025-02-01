@@ -5,12 +5,12 @@ Check if a fragment (which can contain dummy or any atoms represented by "*") is
 ## Example Use
 
 ```python
-from FragmentRetro.substructure_matcher.SubstructureMatcher import is_strict_substructure
+from FragmentRetro.substructure_matcher import SubstructureMatcher
 
 fragment_smiles = "[4*]CCN[5*]",
 molecule_smiles = "CCCNC"
 
-print(is_strict_substructure(fragment_smiles, molecule_smiles))
+print(SubstructureMatcher.is_strict_substructure(fragment_smiles, molecule_smiles))
 # should print True
 ```
 

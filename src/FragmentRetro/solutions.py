@@ -53,6 +53,21 @@ class RetrosynthesisSolution:
     def visualize_solutions(
         self, solutions: list[SolutionType], molsPerRow: int = 3, subImgSize: tuple[float, float] = (200, 200)
     ) -> list[Image.Image]:
+        """Visualizes a list of retrosynthesis solutions.
+
+        Generates a list of images, where each image visualizes a single retrosynthesis
+        solution. Each solution is displayed as a grid of molecules, with the SMILES
+        strings of the molecules as legends.
+
+        Args:
+            solutions: A list of retrosynthesis solutions. Each solution is a list of
+                fragment combinations (lists of fragment indices).
+            molsPerRow: The number of molecules to display in each row of the grid.
+            subImgSize: The size (width, height) of each molecule image in the grid.
+
+        Returns:
+            A list of PIL Image objects, each visualizing a retrosynthesis solution.
+        """
         all_img = []
         for solution in solutions:
             logger.info(f"Solution: {solution}")
