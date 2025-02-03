@@ -13,8 +13,11 @@ from FragmentRetro.solutions import RetrosynthesisSolution
 smiles = "COc1ccc(-n2nccn2)c(C(=O)N2CCC[C@@]2(C)c2nc3c(C)c(Cl)ccc3[nH]2)c1"
 fragmenter = BRICSFragmenter(smiles)
 
-retro_tool = Retrosynthesis(fragmenter)
-# retro_tool.run() # no need to run this, will give an example solution
+retro_tool = Retrosynthesis(fragmenter=fragmenter, original_BBs=set())
+
+# no need to run retrosynthesis for this example usage
+# will give an example solution in the next few lines
+# retro_tool.fragment_retrosynthesis 
 
 # Example Solution
 retro_solution = RetrosynthesisSolution(retro_tool)
