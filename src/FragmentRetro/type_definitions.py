@@ -16,10 +16,13 @@ CombType: TypeAlias = tuple[int]
 # Solution type: list of combination types
 SolutionType: TypeAlias = list[CombType]
 
+# Building block type: set of strings (SMILES)
+BBsType: TypeAlias = set[str]
+
 # Store the combinations for each stage
 # Example: {1: [(0, 1), (2, 3)]} ({stage number: list[CombType]})
 # This can hold all combinations or effective combinations
 StageCombDictType: TypeAlias = dict[int, list[CombType]]
 
 # Store the building blocks for each combination
-CombBBsDictType: TypeAlias = dict[CombType, set[str]]
+CombBBsDictType: TypeAlias = dict[CombType, BBsType]

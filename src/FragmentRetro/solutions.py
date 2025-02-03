@@ -73,7 +73,7 @@ class RetrosynthesisSolution:
             logger.info(f"Solution: {solution}")
             all_smiles = []
             for comb in solution:
-                smiles = self.fragmenter._get_combination_smiles(comb)
+                smiles = self.fragmenter.get_combination_smiles(comb)
                 all_smiles.append(smiles)
             logger.info(f"SMILES: {all_smiles}")
             # Convert SMILES to RDKit molecules
