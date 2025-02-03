@@ -53,6 +53,12 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
         "expected_smarts": "*-[#6H2]-[#6H3]",
         "description": "Dummy atoms without isotopic specification and brackets",
     },
+    {
+        "case_number": 9,
+        "fragment_smiles": "CCNC",
+        "expected_smarts": "[#6H3]-[#6H2]-[#7H1]-[#6H3]",
+        "description": "SMILES without dummy atoms",
+    },
     # TODO: Add test cases for molecules with charges
 ]
 
@@ -105,6 +111,20 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
         "molecule_smiles": "CCN",
         "expected": True,
         "description": "No atom branching out from two dummy atoms should also be true",
+    },
+    {
+        "case_number": 8,
+        "fragment_smiles": "CCNC",
+        "molecule_smiles": "CCNC",
+        "expected": True,
+        "description": "SMILES without * should match normally",
+    },
+    {
+        "case_number": 9,
+        "fragment_smiles": "CCNC",
+        "molecule_smiles": "CCCNC",
+        "expected": False,
+        "description": "SMILES without * should not match with other SMILES",
     },
     # TODO: Add test cases for molecules with charges
 ]
