@@ -28,7 +28,7 @@ class RetrosynthesisSolution:
 
         Args:
             valid_combinations: A list of valid fragment combinations, where each combination
-                is a list of fragment indices.
+                is a tuple of fragment indices.
             num_fragments: The total number of fragments in the retrosynthesis.
 
         Returns:
@@ -49,6 +49,24 @@ class RetrosynthesisSolution:
     def fill_solutions(self) -> None:
         """Fill the solutions list with all possible solutions."""
         self.solutions = self.get_solutions(self.valid_combinations, self.num_fragments)
+
+    def get_solution_smiles(self, solution: SolutionType) -> list[str]:
+        """
+        Retrieves the SMILES strings for each combination in a given solution.
+
+        Args:
+            solution: A retrosynthesis solution, which is a list of fragment combinations.
+                      Each combination is a tuple of fragment indices.
+
+        Returns:
+            A list of SMILES strings, where each string corresponds to a fragment
+            combination in the solution.
+        """
+        all_smiles = []
+        for comb in solution:
+            smiles = self.fragmenter.get_combination_smiles(comb)
+            all_smiles.append(smiles)
+        return all_smiles
 
     def visualize_solutions(
         self, solutions: list[SolutionType], molsPerRow: int = 3, subImgSize: tuple[float, float] = (200, 200)
@@ -71,10 +89,7 @@ class RetrosynthesisSolution:
         all_img = []
         for solution in solutions:
             logger.info(f"Solution: {solution}")
-            all_smiles = []
-            for comb in solution:
-                smiles = self.fragmenter.get_combination_smiles(comb)
-                all_smiles.append(smiles)
+            all_smiles = self.get_solution_smiles(solution)
             logger.info(f"SMILES: {all_smiles}")
             # Convert SMILES to RDKit molecules
             mols = [Chem.MolFromSmiles(smiles) for smiles in all_smiles]
