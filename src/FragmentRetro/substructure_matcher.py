@@ -77,6 +77,9 @@ class SubstructureMatcher:
         # Convert molecule back to SMARTS with indices
         smarts_with_indices = Chem.MolToSmarts(fragment_mol)
 
+        # Sanitize mol to avoid aromatic valency problems
+        Chem.SanitizeMol(fragment_mol)
+
         for atom in fragment_mol.GetAtoms():
             addH = False
             for neighbor in atom.GetNeighbors():

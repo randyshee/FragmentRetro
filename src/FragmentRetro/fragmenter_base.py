@@ -161,7 +161,7 @@ class Fragmenter(ABC):
 
         def dfs(path: list[int]) -> None:
             if len(path) == n:
-                sorted_path = cast(CombType, sorted(path))
+                sorted_path = cast(CombType, tuple(sorted(path)))
                 all_combinations.add(sorted_path)  # Sort before adding
                 return
             last_node = path[-1]
