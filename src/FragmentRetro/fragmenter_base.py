@@ -29,42 +29,6 @@ class Fragmenter(ABC):
     def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
         pass
 
-    def _get_combination_smiles(self, combination: CombType) -> str:
-        """
-        Get the fragment smiles given one combination.
-
-        Args:
-            combination: A combination as a sorted list of node IDs.
-
-        Returns:
-            A SMILES string representing the fragment combination.
-        """
-        if len(combination) == 0:
-            return ""
-        elif len(combination) == 1:
-            return cast(str, self.fragment_graph.nodes[combination[0]]["smiles"])
-        elif len(combination) == self.num_fragments:
-            return self.original_smiles
-        # remove the bonds that are within the fragment combination
-        bonds_to_break: list[BondType] = self.fragmentation_bonds.copy()
-        for pair in itertools.combinations(combination, 2):
-            edge_data = self.fragment_graph.get_edge_data(*pair)
-            if edge_data:
-                bonds_to_break.remove((edge_data["atoms"], edge_data["bond_type"]))
-        # break the bonds
-        comb_broken_mol = self._break_bonds(self.original_mol, bonds_to_break)
-        comb_atom_mappings: list[AtomMappingType] = []
-        mol_fragments: tuple[Mol] = Chem.GetMolFrags(
-            comb_broken_mol, asMols=True, fragsMolAtomMapping=comb_atom_mappings
-        )
-        # get the smiles with the atom mapping that contains the first atom of the combination
-        # first atom is chosen since it is always not the bond break (i.e. any or *) atom
-        for i, mol in enumerate(mol_fragments):
-            if self.atom_mappings[combination[0]][0] in comb_atom_mappings[i]:
-                comb_smiles = Chem.MolToSmiles(mol)
-                break
-        return cast(str, comb_smiles)
-
     def _build_fragment_graph(self) -> nx.Graph:
         """
         Build graph representing fragment connectivity.
@@ -183,7 +147,7 @@ class Fragmenter(ABC):
             logger.info(f"Bond type: {data['bond_type']}")
             logger.info(f"Atoms: {data['atoms']}")
 
-    def _get_length_n_combinations(self, n: int) -> set[CombType]:
+    def get_length_n_combinations(self, n: int) -> set[CombType]:
         """
         Get all unique combinations of n fragments in the fragment graph.
 
@@ -197,7 +161,7 @@ class Fragmenter(ABC):
 
         def dfs(path: list[int]) -> None:
             if len(path) == n:
-                sorted_path = cast(CombType, sorted(path))
+                sorted_path = cast(CombType, tuple(sorted(path)))
                 all_combinations.add(sorted_path)  # Sort before adding
                 return
             last_node = path[-1]
@@ -210,7 +174,38 @@ class Fragmenter(ABC):
 
         return all_combinations
 
-    # def _get_effective_length_n_combinations(self) -> list[str]:
-    #     # TODO: get effective combinations from the stored valid/invalid combinations
-    #     # or maybe this could be check effective combination?
-    #     pass
+    def get_combination_smiles(self, combination: CombType) -> str:
+        """
+        Get the fragment smiles given one combination.
+
+        Args:
+            combination: A combination as a sorted list of node IDs.
+
+        Returns:
+            A SMILES string representing the fragment combination.
+        """
+        if len(combination) == 0:
+            return ""
+        elif len(combination) == 1:
+            return cast(str, self.fragment_graph.nodes[combination[0]]["smiles"])
+        elif len(combination) == self.num_fragments:
+            return self.original_smiles
+        # remove the bonds that are within the fragment combination
+        bonds_to_break: list[BondType] = self.fragmentation_bonds.copy()
+        for pair in itertools.combinations(combination, 2):
+            edge_data = self.fragment_graph.get_edge_data(*pair)
+            if edge_data:
+                bonds_to_break.remove((edge_data["atoms"], edge_data["bond_type"]))
+        # break the bonds
+        comb_broken_mol = self._break_bonds(self.original_mol, bonds_to_break)
+        comb_atom_mappings: list[AtomMappingType] = []
+        mol_fragments: tuple[Mol] = Chem.GetMolFrags(
+            comb_broken_mol, asMols=True, fragsMolAtomMapping=comb_atom_mappings
+        )
+        # get the smiles with the atom mapping that contains the first atom of the combination
+        # first atom is chosen since it is always not the bond break (i.e. any or *) atom
+        for i, mol in enumerate(mol_fragments):
+            if self.atom_mappings[combination[0]][0] in comb_atom_mappings[i]:
+                comb_smiles = Chem.MolToSmiles(mol)
+                break
+        return cast(str, comb_smiles)

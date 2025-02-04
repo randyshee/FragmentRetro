@@ -3,9 +3,11 @@ from typing import cast
 
 from rdkit import Chem
 
+from FragmentRetro.type_definitions import BBsType
+
 
 class SubstructureMatcher:
-    def __init__(self, BBs: set[str] = set()):
+    def __init__(self, BBs: BBsType = set()):
         """
         Initialize with a set of building blocks (BBs).
 
@@ -75,6 +77,9 @@ class SubstructureMatcher:
         # Convert molecule back to SMARTS with indices
         smarts_with_indices = Chem.MolToSmarts(fragment_mol)
 
+        # Sanitize mol to avoid aromatic valency problems
+        Chem.SanitizeMol(fragment_mol)
+
         for atom in fragment_mol.GetAtoms():
             addH = False
             for neighbor in atom.GetNeighbors():
@@ -131,7 +136,7 @@ class SubstructureMatcher:
             bool, molecule_mol.HasSubstructMatch(fragment_mol_withH)
         )
 
-    def get_substructure_BBs(self, fragment: str) -> set[str]:
+    def get_substructure_BBs(self, fragment: str) -> BBsType:
         """
         Get the set of building blocks (BBs) that the fragment matches.
 
