@@ -14,9 +14,9 @@ class Retrosynthesis:
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
         self.original_BBs = original_BBs
-        self.valid_combinations_dict: StageCombDictType = {}
-        self.invalid_combinations_dict: StageCombDictType = {}
-        self.comb_bbs_dict: CombBBsDictType = {}
+        self.valid_combinations_dict: StageCombDictType = {}  # store valid combs for each stage
+        self.invalid_combinations_dict: StageCombDictType = {}  # store invalid combs for each stage
+        self.comb_bbs_dict: CombBBsDictType = {}  # store valid BBs for fragment combs
 
     def _check_effective_comb(self, comb: CombType) -> bool:
         """Check if a combination is effective.
@@ -38,8 +38,8 @@ class Retrosynthesis:
                 return False
         return True
 
-    def _get_BBs_for_comb(self, comb: CombType) -> BBsType:
-        """Get building blocks for a given combination of fragments.
+    def _get_possible_BBs_for_comb(self, comb: CombType) -> BBsType:
+        """Get possible building blocks for a given combination of fragments.
 
         For a combination of length 1, the original building blocks are returned.
         For combinations of length greater than 1, the building blocks are
@@ -95,7 +95,7 @@ class Retrosynthesis:
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
             # get building blocks for comb
-            possible_comb_BBs = self._get_BBs_for_comb(comb)
+            possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
             comb_matcher = SubstructureMatcher(possible_comb_BBs)
             valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
             # store valid comb and BBs
