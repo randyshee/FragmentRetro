@@ -30,13 +30,13 @@ retro_solution = RetrosynthesisSolution(retro_tool)
 retro_solution.fill_solutions()
 print(retro_solution.solutions)
 # Expected output:
-# [[(0, 1, 2), (3,), (4,), (5,)],
+# [[(0,), (1,), (2,), (3,), (4,), (5,)],
 #  [(0, 1), (2,), (3,), (4,), (5,)],
 #  [(0,), (1, 2), (3,), (4,), (5,)],
-#  [(0,), (1,), (2,), (3,), (4,), (5,)]]
+#  [(0, 1, 2), (3,), (4,), (5,)]]
 
-# Visualize the first solution
-retro_solution.visualize_solutions(retro_solution.solutions, molsPerRow=4)[0]
+# Visualize the last solution
+retro_solution.visualize_solutions(retro_solution.solutions, molsPerRow=4)[-1]
 
 # Get the valid building blocks for a fragment combination 
 # retro_tool.comb_bbs_dict[(0, 1 ,2)]
