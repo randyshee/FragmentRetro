@@ -65,8 +65,10 @@ TEST_CASES_FOR_GET_SOLUTIONS = [
 def test_get_solutions(case_number, valid_combinations, num_fragments, expected_solution, description):
     result = RetrosynthesisSolution.get_solutions(valid_combinations, num_fragments)
     assert (
-        result == expected_solution
-    ), f"Case {case_number} failed: {description}. Valid combinations: {valid_combinations}. Expected solutions: {expected_solution}"
+        len(result) == len(expected_solution)
+    ), f"Case {case_number} failed: {description}. Length of results differs. Expected {len(expected_solution)}, got {len(result)}"
+    for sol in expected_solution:
+        assert sol in result, f"Case {case_number} failed: {description}. Expected solution {sol} not found in results."
 
 
 if __name__ == "__main__":

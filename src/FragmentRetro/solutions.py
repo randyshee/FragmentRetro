@@ -1,4 +1,3 @@
-import itertools
 from itertools import chain
 
 from PIL import Image
@@ -19,6 +18,41 @@ class RetrosynthesisSolution:
         self.num_fragments = retrosynthesis.fragmenter.num_fragments
 
     @staticmethod
+    def _find_complementary_combinations(
+        current_solution: list[CombType],
+        remaining_fragments: set[int],
+        start_index: int,
+        valid_combinations: list[CombType],
+        all_solutions: list[SolutionType],
+    ) -> None:
+        """
+        Recursively finds complementary combinations to form a complete solution.
+
+        Args:
+            current_solution: The current partial solution.
+            remaining_fragments: The set of fragments that still need to be covered.
+            start_index: The index to start searching for combinations from.
+            valid_combinations: The list of valid fragment combinations.
+            all_solutions: The list to store complete solutions.
+        """
+        if not remaining_fragments:
+            sorted_solution = sorted(current_solution, key=lambda s: sorted(s))
+            if sorted_solution not in all_solutions:
+                all_solutions.append(sorted_solution)
+            return
+
+        for j in range(start_index, len(valid_combinations)):
+            comb2 = valid_combinations[j]
+            if set(comb2).issubset(remaining_fragments):
+                RetrosynthesisSolution._find_complementary_combinations(
+                    current_solution + [comb2],
+                    remaining_fragments - set(comb2),
+                    j + 1,
+                    valid_combinations,
+                    all_solutions,
+                )
+
+    @staticmethod
     def get_solutions(valid_combinations: list[CombType], num_fragments: int) -> list[SolutionType]:
         """
         Generates all possible retrosynthesis solutions from a list of valid fragment combinations.
@@ -36,13 +70,21 @@ class RetrosynthesisSolution:
             Returns an empty list if no solutions are found.
         """
         all_solutions: list[SolutionType] = []
-        for r in range(1, num_fragments + 1):
-            for solution in itertools.combinations(valid_combinations, r):
-                flat_solution = [item for sublist in solution for item in sublist]
-                if len(flat_solution) == num_fragments and set(flat_solution) == set(range(num_fragments)):
-                    sorted_solution = sorted(solution, key=lambda s: sorted(s))
-                    if sorted_solution not in all_solutions:
-                        all_solutions.append(sorted_solution)
+        full_fragment_set = set(range(num_fragments))
+
+        for i, comb1 in enumerate(valid_combinations):
+            solution = [comb1]
+            remaining_fragments = full_fragment_set - set(comb1)
+
+            if not remaining_fragments:
+                sorted_solution = sorted(solution, key=lambda s: sorted(s))
+                if sorted_solution not in all_solutions:
+                    all_solutions.append(sorted_solution)
+                continue
+
+            RetrosynthesisSolution._find_complementary_combinations(
+                solution, remaining_fragments, i + 1, valid_combinations, all_solutions
+            )
 
         return all_solutions
 
