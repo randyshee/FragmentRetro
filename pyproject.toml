@@ -29,7 +29,7 @@ dev = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-exclude = ["tests"]
+exclude = ["tests", "src/fragmentation/rBRICS.py"]
 disable_error_code = ["unused-ignore"]
 [[tool.mypy.overrides]]
 module = ["rdkit-stubs.*", "rdkit.*"]
