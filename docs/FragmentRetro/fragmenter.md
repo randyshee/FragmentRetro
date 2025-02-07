@@ -23,3 +23,5 @@ fragmenter.visualize(figsize=(20, 10), verbose=False, with_indices=True)
       show_source: true
       members:
         - BRICSFragmenter
+        - rBRICSFragmenter
+        - rBRICSAromaticFragmenter
