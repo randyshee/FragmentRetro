@@ -12,9 +12,12 @@ from FragmentRetro.type_definitions import AtomMappingType, BondType, CombType
 
 
 class Fragmenter(ABC):
-    def __init__(self, smiles: str) -> None:
+    def __init__(self, smiles: str, clearAromaticFlags: bool = False) -> None:
         self.original_smiles: str = smiles
         self.original_mol: Mol = Chem.MolFromSmiles(smiles)
+        if clearAromaticFlags:
+            # can break aromatic bonds
+            Chem.Kekulize(self.original_mol, clearAromaticFlags=True)
         self.fragmentation_bonds: list[BondType] = self._find_fragmentation_bonds(self.original_mol)
         self.broken_mol: Mol = self._break_bonds(self.original_mol, self.fragmentation_bonds)
         self.atom_mappings: list[AtomMappingType] = []
