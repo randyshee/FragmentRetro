@@ -114,17 +114,45 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
     },
     {
         "case_number": 8,
+        "fragment_smiles": "[4*]CCN[5*]",
+        "molecule_smiles": "CCNC",
+        "expected": True,
+        "description": "No atom branching out from just one dummy atom should also be true",
+    },
+    {
+        "case_number": 9,
+        "fragment_smiles": "[16*]c1ccc([16*])c([16*])c1",
+        "molecule_smiles": "Brc1ccc(Br)cc1",
+        "expected": True,
+        "description": "No atom branching out from just two dummy atom should also be true",
+    },
+    {
+        "case_number": 10,
         "fragment_smiles": "CCNC",
         "molecule_smiles": "CCNC",
         "expected": True,
         "description": "SMILES without * should match normally",
     },
     {
-        "case_number": 9,
+        "case_number": 11,
         "fragment_smiles": "CCNC",
         "molecule_smiles": "CCCNC",
         "expected": False,
         "description": "SMILES without * should not match with other SMILES",
+    },
+    {
+        "case_number": 12,
+        "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
+        "molecule_smiles": "BrN1CCC[C@@]1(Br)C",
+        "expected": True,
+        "description": "Chiral case True",
+    },
+    {
+        "case_number": 13,
+        "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
+        "molecule_smiles": "BrN1CCC[C@]1(Br)C",
+        "expected": False,
+        "description": "Chiral case False",
     },
     # TODO: Add test cases for molecules with charges
 ]
