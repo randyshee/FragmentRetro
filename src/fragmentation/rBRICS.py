@@ -318,8 +318,6 @@ reactionDefs = (
     [("22", "23", "-")],
 )
 
-reactionDefs_r = ([("20", "21", "-")],)
-
 
 def init_reactions(environs, reactionDefs):
     smartsGps = copy.deepcopy(reactionDefs)
@@ -382,7 +380,6 @@ def init_reactions(environs, reactionDefs):
 
 
 gp, environMatchers, bondMatchers, reactions, reverseReactions = init_reactions(environs, reactionDefs)
-gp_r, environMatchers_r, bondMatchers_r, reactions_r, reverseReactions_r = init_reactions(environs, reactionDefs_r)
 
 
 def FindrBRICSBonds(mol, randomizeOrder=False, silent=True):
@@ -445,35 +442,6 @@ def FindrBRICSBonds(mol, randomizeOrder=False, silent=True):
             random.shuffle(compats)
         else:
             compats = bondMatchers[gpIdx]
-        for i1, i2, bType, patt in compats:
-            if not envMatches["L" + i1] or not envMatches["L" + i2]:
-                continue
-            matches = mol.GetSubstructMatches(patt)
-            i1 = letter.sub("", i1)
-            i2 = letter.sub("", i2)
-            for match in matches:
-                if match not in bondsDone and (match[1], match[0]) not in bondsDone:
-                    bondsDone.add(match)
-                    yield (((match[0], match[1]), (i1, i2)))
-
-
-# Leili
-def FindreBRICSBonds(mol, randomizeOrder=False, silent=True):
-    letter = re.compile("[a-z,A-Z]")
-    indices = range(len(bondMatchers_r))
-    bondsDone = set()
-    if randomizeOrder:
-        random.shuffle(indices)
-
-    envMatches = {}
-    for env, patt in environMatchers_r.items():  # Leili
-        envMatches[env] = mol.HasSubstructMatch(patt)
-    for gpIdx in indices:
-        if randomizeOrder:
-            compats = bondMatchers_r[gpIdx][:]
-            random.shuffle(compats)
-        else:
-            compats = bondMatchers_r[gpIdx]
         for i1, i2, bType, patt in compats:
             if not envMatches["L" + i1] or not envMatches["L" + i2]:
                 continue
@@ -755,46 +723,3 @@ def BRICSBuild(fragments, onlyCompleteMols=True, seeds=None, uniquify=True, scra
                     else:
                         seen.add(pSmi)
                 yield p
-
-
-#
-# Leili
-# Iteratively breaks all aliphatic chains using linkage L20-L21, just in case chain is too long and L20-L23 aren't enough
-# Not the most efficient code yet
-def reBRICS(fragments):
-    oldfragments = fragments
-    breakable = [1] * len(oldfragments)
-    breakout = sum(breakable)
-    iteri = 0
-    while breakout > 0:
-        iii = 0
-        newfrags = ()
-        newbreakable = []
-        for frag in oldfragments:
-            heavy = frag.GetNumHeavyAtoms()
-            if heavy > 5:
-                if len(frag.GetSubstructMatch(Chem.MolFromSmiles("CCCCCC"))) > 0:
-                    secondbonds = FindreBRICSBonds(frag)  # only breaks aliphatic chains
-                    secondpieces = BreakrBRICSBonds(frag, secondbonds)
-                    secondfrags = Chem.GetMolFrags(secondpieces, asMols=True)
-                    if len(secondfrags) > 1:
-                        newfrags = newfrags + secondfrags
-                        newbreakable = newbreakable + [1] * len(secondfrags)
-                    else:
-                        newfrags = newfrags + secondfrags
-                        newbreakable = newbreakable.append(0)  # 1 frag->1 frag, no longer breakable, criteria #1
-                else:
-                    newfrags = newfrags + (frag,)
-                    newbreakable.append(0)  # frag doesn't contain CCCCCC chain, no longer breakable, criteria #2
-            else:
-                newfrags = newfrags + (frag,)
-                newbreakable.append(0)  # frag contains less than 5 heavy atoms, no longer breakable, criteria #3
-            iii += 1
-        oldfragments = newfrags
-        breakable = newbreakable
-        breakout = sum(newbreakable)
-        iteri += 1
-        if iteri > 100:  # more than 100 iterations, criteria #4
-            print("Too many iterations. Not trying to break a polymer, are we? :)")
-            breakout = 0
-    return newfrags
