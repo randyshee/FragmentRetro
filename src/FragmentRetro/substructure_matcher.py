@@ -103,7 +103,7 @@ class SubstructureMatcher:
         return adjusted_smarts
 
     @staticmethod
-    def is_strict_substructure(fragment_smiles: str, molecule_smiles: str) -> bool:
+    def is_strict_substructure(fragment_smiles: str, molecule_smiles: str, useChirality: bool = True) -> bool:
         """
         Check if the fragment is a strict substructure of the molecule. No extra atoms or
         branchings should be in the molecule other than the ones explicitly defined in the
@@ -112,6 +112,7 @@ class SubstructureMatcher:
         Args:
             fragment_smiles: SMILES string of the fragment.
             molecule_smiles: SMILES string of the molecule.
+            useChirality: whether to match chirality
 
         Returns:
             True if the fragment is a strict substructure of the molecule, False otherwise.
@@ -131,7 +132,7 @@ class SubstructureMatcher:
 
         if molecule_mol is None:
             raise ValueError(f"Invalid SMILES string: {molecule_smiles}")
-        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol_withH, useChirality=True))
+        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol_withH, useChirality=useChirality))
 
     def get_substructure_BBs(self, fragment: str) -> BBsType:
         """
