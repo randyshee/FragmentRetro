@@ -1,7 +1,7 @@
 from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.logging_config import logger
 from FragmentRetro.substructure_matcher import SubstructureMatcher
-from FragmentRetro.type_definitions import (
+from FragmentRetro.utils.logging_config import logger
+from FragmentRetro.utils.type_definitions import (
     BBsType,
     CombBBsDictType,
     CombType,

@@ -1,5 +1,7 @@
 """Type definitions for FragmentRetro package."""
 
+from typing import TypedDict
+
 from typing_extensions import TypeAlias
 
 # Bond type (from BRICS): ((atom1_idx, atom2_idx), (type1, type2))
@@ -26,3 +28,11 @@ StageCombDictType: TypeAlias = dict[int, list[CombType]]
 
 # Store the building blocks for each combination
 CombBBsDictType: TypeAlias = dict[CombType, BBsType]
+
+
+class MolProperties(TypedDict, total=True):
+    """Type definition for molecular properties."""
+
+    num_heavy_atoms: int
+    num_rings: int
+    pfp: list[int]  # Pattern Fingerprint

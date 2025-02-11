@@ -4,9 +4,9 @@ from pathlib import Path
 from tqdm import tqdm
 
 from FragmentRetro.fragmenter import BRICSFragmenter
-from FragmentRetro.logging_config import logger
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
+from FragmentRetro.utils.logging_config import logger
 
 DATA_PATH = Path(__name__).parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"

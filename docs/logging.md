@@ -28,7 +28,7 @@ Valid log levels are:
 When writing a module, follow these guidelines:
 
 ```python
-from FragmentRetro.logging_config import logger
+from FragmentRetro.utils.logging_config import logger
 
 def my_function():
     # Use appropriate log levels
@@ -42,7 +42,7 @@ def my_function():
 Key points:
 
 - Don't configure the logger in your modules
-- Always use `from FragmentRetro.logging_config import logger`
+- Always use `from FragmentRetro.utils.logging_config import logger`
 - Choose appropriate log levels
 - Don't use print statements for debugging
 - Don't add parameters like `verbose` to your functions
@@ -52,7 +52,7 @@ Key points:
 For Jupyter notebooks, put this in your first cell:
 
 ```python
-from FragmentRetro.logging_config import logger
+from FragmentRetro.utils.logging_config import logger
 
 logger.setLevel(logging.DEBUG)  # To see debug messages
 logger.setLevel(logging.INFO)   # Back to info only

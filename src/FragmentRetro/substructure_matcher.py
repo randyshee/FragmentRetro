@@ -3,7 +3,7 @@ from typing import cast
 
 from rdkit import Chem
 
-from FragmentRetro.type_definitions import BBsType
+from FragmentRetro.utils.type_definitions import BBsType
 
 
 class SubstructureMatcher:

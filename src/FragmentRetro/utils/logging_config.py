@@ -8,7 +8,7 @@ import tomli
 
 def setup_logging() -> None:
     """Setup logging configuration from pyproject.toml with environment variable override"""
-    pyproject_path = Path(__file__).parents[2] / "pyproject.toml"
+    pyproject_path = Path(__file__).parents[3] / "pyproject.toml"
 
     with open(pyproject_path, "rb") as f:
         config = tomli.load(f)

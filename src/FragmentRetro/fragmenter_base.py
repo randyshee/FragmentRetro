@@ -7,8 +7,8 @@ import networkx as nx
 from rdkit import Chem
 from rdkit.Chem import Mol
 
-from FragmentRetro.logging_config import logger
-from FragmentRetro.type_definitions import AtomMappingType, BondType, CombType
+from FragmentRetro.utils.logging_config import logger
+from FragmentRetro.utils.type_definitions import AtomMappingType, BondType, CombType
 
 
 class Fragmenter(ABC):
