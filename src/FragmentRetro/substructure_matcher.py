@@ -95,7 +95,7 @@ class SubstructureMatcher:
                 smarts_with_indices = smarts_with_indices.replace(
                     # The '&' here is from `Chem.MolToSmarts(fragment_mol)`
                     f"[#{atom.GetAtomicNum()}&H{num_hydrogens}:{idx}]",
-                    f"[#{atom.GetAtomicNum()}H{num_hydrogens+1}:{idx}]",
+                    f"[#{atom.GetAtomicNum()}H{num_hydrogens},H{num_hydrogens+1}]",
                 )
 
         # Remove atom map indices
@@ -123,7 +123,7 @@ class SubstructureMatcher:
         fragment_smarts_withH = SubstructureMatcher.addH_to_wildcard_neighbors(fragment_smarts)
 
         # Convert molecule SMILES to RDKit molecule object
-        fragment_mol = Chem.MolFromSmarts(fragment_smarts)
+        # fragment_mol = Chem.MolFromSmarts(fragment_smarts)
         fragment_mol_withH = Chem.MolFromSmarts(fragment_smarts_withH)
         molecule_mol = Chem.MolFromSmiles(molecule_smiles)
         # to make sure hydrogen atoms can match with wildcard atoms
@@ -131,10 +131,7 @@ class SubstructureMatcher:
 
         if molecule_mol is None:
             raise ValueError(f"Invalid SMILES string: {molecule_smiles}")
-        # return cast(bool, fragment_mol.HasSubstructMatch(molecule_mol))
-        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol, useChirality=True)) or cast(
-            bool, molecule_mol.HasSubstructMatch(fragment_mol_withH, useChirality=True)
-        )
+        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol_withH, useChirality=True))
 
     def get_substructure_BBs(self, fragment: str) -> BBsType:
         """
