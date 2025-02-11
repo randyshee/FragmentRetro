@@ -6,6 +6,24 @@ from rdkit.Chem import rdMolDescriptors
 from FragmentRetro.utils.type_definitions import MolProperties
 
 
+def canonicalize_smiles(smiles: str) -> str:
+    """Canonicalizes a SMILES string using RDKit.
+
+    Args:
+        smiles: The SMILES string to canonicalize.
+
+    Returns:
+        The canonicalized SMILES string.
+
+    Raises:
+        ValueError: If the SMILES string cannot be parsed by RDKit.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Failed to parse SMILES: {smiles}")
+    return cast(str, Chem.MolToSmiles(mol))
+
+
 def count_heavy_atoms(smiles: str) -> int:
     """Counts the number of heavy atoms in a SMILES string.
 
@@ -56,10 +74,14 @@ def get_mol_properties(smiles: str) -> MolProperties:
         ValueError: If the SMILES string is invalid and cannot be converted
             to an RDKit molecule.
     """
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        raise ValueError(f"Invalid SMILES string: {smiles}")
+    cano_smiles = canonicalize_smiles(smiles)
+    mol = Chem.MolFromSmiles(cano_smiles)
 
     pfp = list(Chem.rdmolops.PatternFingerprint(mol).GetOnBits())
 
-    return {"num_heavy_atoms": mol.GetNumHeavyAtoms(), "num_rings": rdMolDescriptors.CalcNumRings(mol), "pfp": pfp}
+    return {
+        "cano_smiles": cano_smiles,
+        "num_heavy_atoms": mol.GetNumHeavyAtoms(),
+        "num_rings": rdMolDescriptors.CalcNumRings(mol),
+        "pfp": pfp,
+    }

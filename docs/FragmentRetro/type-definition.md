@@ -31,3 +31,4 @@ BondsType: TypeAlias = list[BondType]
         - CombType
         - StageCombDictType
         - CombBBsDictType
+        - MolProperties

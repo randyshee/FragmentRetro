@@ -33,6 +33,7 @@ CombBBsDictType: TypeAlias = dict[CombType, BBsType]
 class MolProperties(TypedDict, total=True):
     """Type definition for molecular properties."""
 
+    cano_smiles: str
     num_heavy_atoms: int
     num_rings: int
     pfp: list[int]  # Pattern Fingerprint
