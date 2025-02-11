@@ -132,8 +132,8 @@ class SubstructureMatcher:
         if molecule_mol is None:
             raise ValueError(f"Invalid SMILES string: {molecule_smiles}")
         # return cast(bool, fragment_mol.HasSubstructMatch(molecule_mol))
-        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol)) or cast(
-            bool, molecule_mol.HasSubstructMatch(fragment_mol_withH)
+        return cast(bool, molecule_mol.HasSubstructMatch(fragment_mol, useChirality=True)) or cast(
+            bool, molecule_mol.HasSubstructMatch(fragment_mol_withH, useChirality=True)
         )
 
     def get_substructure_BBs(self, fragment: str) -> BBsType:

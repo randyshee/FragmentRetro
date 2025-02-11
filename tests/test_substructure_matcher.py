@@ -114,13 +114,20 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
     },
     {
         "case_number": 8,
+        "fragment_smiles": "[4*]CCN[5*]",
+        "molecule_smiles": "CCNC",
+        "expected": True,
+        "description": "No atom branching out from just one dummy atom should also be true",
+    },
+    {
+        "case_number": 9,
         "fragment_smiles": "CCNC",
         "molecule_smiles": "CCNC",
         "expected": True,
         "description": "SMILES without * should match normally",
     },
     {
-        "case_number": 9,
+        "case_number": 10,
         "fragment_smiles": "CCNC",
         "molecule_smiles": "CCCNC",
         "expected": False,
