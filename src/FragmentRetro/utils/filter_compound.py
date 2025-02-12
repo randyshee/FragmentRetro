@@ -10,7 +10,7 @@ from FragmentRetro.utils.helpers import canonicalize_smiles
 from FragmentRetro.utils.type_definitions import MolProperties
 
 
-def get_mol_properties(smiles: str) -> MolProperties:
+def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
     """Given a SMILES string, returns a dictionary containing molecular properties.
 
     Args:
@@ -32,7 +32,7 @@ def get_mol_properties(smiles: str) -> MolProperties:
     mol.UpdatePropertyCache()
     Chem.GetSymmSSSR(mol)
 
-    pfp = list(Chem.rdmolops.PatternFingerprint(mol).GetOnBits())
+    pfp = list(Chem.rdmolops.PatternFingerprint(mol, fpSize=fpSize).GetOnBits())
 
     return {
         "cano_smiles": cano_smiles,
@@ -42,7 +42,7 @@ def get_mol_properties(smiles: str) -> MolProperties:
     }
 
 
-def precompute_properties(smiles_list: list[str], output_path: Path) -> None:
+def precompute_properties(smiles_list: list[str], output_path: Path, fpSize: int = 2048) -> None:
     """Calculates molecular properties for a list of SMILES strings and saves them to a JSON file.
 
     Args:
@@ -52,7 +52,7 @@ def precompute_properties(smiles_list: list[str], output_path: Path) -> None:
     results = []
     for smiles in smiles_list:
         try:
-            mol_properties = get_mol_properties(smiles)
+            mol_properties = get_mol_properties(smiles, fpSize=fpSize)
             results.append(mol_properties)
         except ValueError as e:
             print(f"Error processing SMILES '{smiles}': {e}")
@@ -65,7 +65,7 @@ def precompute_properties(smiles_list: list[str], output_path: Path) -> None:
 class CompoundFilter:
     """A class for filtering compounds based on precomputed molecular properties."""
 
-    def __init__(self, mol_properties_path: Path):
+    def __init__(self, mol_properties_path: Path, fpSize: int = 2048):
         """
         Initializes the CompoundFilter with molecular properties loaded from a JSON file.
 
@@ -78,6 +78,7 @@ class CompoundFilter:
         self.num_rings_list: list[int] = []
         self.pfp_len_list: list[int] = []
         self.pfp_list: list[list[int]] = []
+        self.fpSize = fpSize
 
         self._load_mol_properties()
         self._create_numpy_arrays()
@@ -100,16 +101,10 @@ class CompoundFilter:
         self.num_rings_array = np.array(self.num_rings_list)
         self.pfp_len_array = np.array(self.pfp_len_list)
 
-        # Create a set of all unique PFP bits
-        all_pfp_bits = set()
-        for pfp in self.pfp_list:
-            all_pfp_bits.update(pfp)
-        self.all_pfp_bits = sorted(list(all_pfp_bits))
-
         # Create a boolean NumPy array for PFP bits
-        self.pfp_bit_array = np.zeros((len(self.pfp_list), len(self.all_pfp_bits)), dtype=bool)
+        self.pfp_bit_array = np.zeros((len(self.pfp_list), self.fpSize), dtype=bool)
         for i, pfp in enumerate(self.pfp_list):
-            self.pfp_bit_array[i, [self.all_pfp_bits.index(bit) for bit in pfp]] = True
+            self.pfp_bit_array[i, pfp] = True
 
     def filter_compounds(self, smiles: str) -> list[int]:
         """Filters compounds based on a query SMILES string.
@@ -131,6 +126,9 @@ class CompoundFilter:
         pfp = mol_properties["pfp"]
         pfp_len = len(pfp)
 
+        query_pfp_bit_array = np.zeros(self.fpSize, dtype=bool)
+        query_pfp_bit_array[pfp] = True
+
         # Filtering based on molecular properties
         indices = np.where(
             (self.num_heavy_atoms_array >= num_heavy_atoms)
@@ -138,17 +136,11 @@ class CompoundFilter:
             & (self.pfp_len_array >= pfp_len)
         )[0].tolist()
 
-        # # Filter based on PFP bits
-        # query_pfp_bits = set(pfp)
-        # filtered_indices = []
-        # for i in indices:
-        #     stock_pfp_bits = set(self.pfp_list[i])
-        #     if query_pfp_bits.issubset(stock_pfp_bits):
-        #         filtered_indices.append(i)
-
-        # check pfpbit matches
-        query_indices = [self.all_pfp_bits.index(bit) for bit in pfp if bit in self.all_pfp_bits]
-        has_bits_matched = np.all(self.pfp_bit_array[indices][:, query_indices], axis=1)
-        filtered_indices = np.array(indices)[has_bits_matched].tolist()
-
-        return cast(list[int], filtered_indices)
+        # TODO: this might not be the most efficeint way
+        # check pfp of query is subset of pfp of filtered compounds
+        filtered_indices = []
+        for i in indices:
+            if np.all(self.pfp_bit_array[i, query_pfp_bit_array]):
+                filtered_indices.append(i)
+        
+        return filtered_indices
