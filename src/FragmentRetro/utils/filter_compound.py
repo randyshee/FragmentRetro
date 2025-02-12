@@ -1,13 +1,12 @@
+import json
+from pathlib import Path
 
+import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 
 from FragmentRetro.utils.helpers import canonicalize_smiles
 from FragmentRetro.utils.type_definitions import MolProperties
-
-import json
-from pathlib import Path
-import numpy as np
 
 
 def get_mol_properties(smiles: str) -> MolProperties:
