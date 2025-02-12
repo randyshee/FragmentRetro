@@ -53,3 +53,39 @@ def sort_by_heavy_atoms(smiles_list: list[str]) -> list[str]:
         The sorted list of SMILES strings.
     """
     return sorted(smiles_list, key=count_heavy_atoms)
+
+
+def remove_dummy_atoms(smiles: str) -> str:
+    """Removes dummy atoms (denoted by '*') from a SMILES string.
+
+    Args:
+        smiles: The SMILES string potentially containing dummy atoms.
+
+    Returns:
+        The SMILES string with dummy atoms removed.  Returns an empty string
+        if the input SMILES is invalid.
+
+    Raises:
+        ValueError: If the SMILES string is invalid and cannot be converted
+            to an RDKit molecule.
+    """
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise ValueError(f"Invalid SMILES string: {smiles}")
+
+    editable_mol = Chem.EditableMol(mol)
+    remove_indices = [atom.GetIdx() for atom in mol.GetAtoms() if atom.GetSymbol() == "*"]
+
+    if not remove_indices:
+        return smiles
+
+    # Remove atoms in reverse order to avoid index issues
+    for i in sorted(remove_indices, reverse=True):
+        editable_mol.RemoveAtom(i)
+
+    # Convert back to a molecule
+    mol = editable_mol.GetMol()
+    # Fix aromaticity, valency, etc.
+    Chem.SanitizeMol(mol)
+
+    return cast(str, Chem.MolToSmiles(mol, isomericSmiles=True))
