@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from FragmentRetro.utils.filter_compounds import precompute_properties
+from FragmentRetro.utils.filter_compound import precompute_properties
 
-DATA_PATH = Path(__name__).parent / "data"
+DATA_PATH = Path(__file__).parent
 PAROUTES_PATH = DATA_PATH / "paroutes"
 PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
