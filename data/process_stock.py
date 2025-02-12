@@ -18,7 +18,7 @@ def precompute_properties(smiles_list: list[str], output_path: Path) -> None:
             results.append(mol_properties)
         except ValueError as e:
             print(f"Error processing SMILES '{smiles}': {e}")
-            results.append(None)  # Or handle the error as appropriate
+            continue
 
     with open(output_path, "w") as f:
         json.dump(results, f, indent=4)
