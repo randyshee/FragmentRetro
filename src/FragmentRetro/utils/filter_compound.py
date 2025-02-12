@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 from rdkit import Chem
@@ -81,7 +82,7 @@ class CompoundFilter:
         self._load_mol_properties()
         self._create_numpy_arrays()
 
-    def _load_mol_properties(self):
+    def _load_mol_properties(self) -> None:
         """Loads molecular properties from the JSON file."""
         with open(self.mol_properties_path, "r") as f:
             mol_properties_list = json.load(f)
@@ -93,7 +94,7 @@ class CompoundFilter:
             self.pfp_len_list.append(len(mol_props["pfp"]))
             self.pfp_list.append(mol_props["pfp"])
 
-    def _create_numpy_arrays(self):
+    def _create_numpy_arrays(self) -> None:
         """Creates NumPy arrays for faster filtering."""
         self.num_heavy_atoms_array = np.array(self.num_heavy_atoms_list)
         self.num_rings_array = np.array(self.num_rings_list)
@@ -150,4 +151,4 @@ class CompoundFilter:
         has_bits_matched = np.all(self.pfp_bit_array[indices][:, query_indices], axis=1)
         filtered_indices = np.array(indices)[has_bits_matched].tolist()
 
-        return filtered_indices
+        return cast(list[int], filtered_indices)
