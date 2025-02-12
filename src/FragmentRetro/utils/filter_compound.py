@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 from rdkit import Chem
@@ -136,11 +135,11 @@ class CompoundFilter:
             & (self.pfp_len_array >= pfp_len)
         )[0].tolist()
 
-        # TODO: this might not be the most efficeint way
+        # TODO: this might not be the most efficeint way, dummy atom not working yet
         # check pfp of query is subset of pfp of filtered compounds
         filtered_indices = []
         for i in indices:
             if np.all(self.pfp_bit_array[i, query_pfp_bit_array]):
                 filtered_indices.append(i)
-        
+
         return filtered_indices
