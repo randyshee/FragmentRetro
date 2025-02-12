@@ -1,9 +1,6 @@
 from typing import cast
 
 from rdkit import Chem
-from rdkit.Chem import rdMolDescriptors
-
-from FragmentRetro.utils.type_definitions import MolProperties
 
 
 def canonicalize_smiles(smiles: str) -> str:
@@ -56,35 +53,3 @@ def sort_by_heavy_atoms(smiles_list: list[str]) -> list[str]:
         The sorted list of SMILES strings.
     """
     return sorted(smiles_list, key=count_heavy_atoms)
-
-
-def get_mol_properties(smiles: str) -> MolProperties:
-    """Given a SMILES string, returns a dictionary containing molecular properties.
-
-    Args:
-        smiles: The SMILES string.
-
-    Returns:
-        A dictionary containing the following keys:
-            - 'num_heavy_atoms': Number of heavy atoms
-            - 'num_rings': Number of rings
-            - 'pfp': Pattern fingerprint bits
-
-    Raises:
-        ValueError: If the SMILES string is invalid and cannot be converted
-            to an RDKit molecule.
-    """
-    cano_smiles = canonicalize_smiles(smiles)
-    mol = Chem.MolFromSmiles(cano_smiles)
-    # solve C++ signature problems?
-    mol.UpdatePropertyCache()
-    Chem.GetSymmSSSR(mol)
-
-    pfp = list(Chem.rdmolops.PatternFingerprint(mol).GetOnBits())
-
-    return {
-        "cano_smiles": cano_smiles,
-        "num_heavy_atoms": mol.GetNumHeavyAtoms(),
-        "num_rings": rdMolDescriptors.CalcNumRings(mol),
-        "pfp": pfp,
-    }
