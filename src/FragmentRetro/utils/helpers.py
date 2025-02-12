@@ -76,6 +76,9 @@ def get_mol_properties(smiles: str) -> MolProperties:
     """
     cano_smiles = canonicalize_smiles(smiles)
     mol = Chem.MolFromSmiles(cano_smiles)
+    # solve C++ signature problems?
+    mol.UpdatePropertyCache()
+    Chem.GetSymmSSSR(mol)
 
     pfp = list(Chem.rdmolops.PatternFingerprint(mol).GetOnBits())
 
