@@ -126,6 +126,8 @@ class Retrosynthesis:
                 self.comb_bbs_dict[comb] = valid_BBs
             else:
                 self.invalid_combinations_dict[stage].append(comb)
+        if stage == 1 and self.use_filter:
+            del self.compound_filter  # save memory
         logger.info(f"Stage {stage}: {len(self.valid_combinations_dict[stage])} valid combinations")
         logger.info(f"Stage {stage}: {len(self.invalid_combinations_dict[stage])} invalid combinations")
 
