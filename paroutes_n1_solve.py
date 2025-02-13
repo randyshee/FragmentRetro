@@ -11,6 +11,7 @@ from FragmentRetro.utils.logging_config import logger
 DATA_PATH = Path(__name__).parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
 EVAL_PATH = DATA_PATH / "evaluations"
+PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
 
 ####### Change this
@@ -24,7 +25,13 @@ n1_products, n1_routes = n1_data[0], n1_data[2]
 
 targets = n1_products
 stock = n1_stock
-SAVED_PATH = EVAL_PATH / "eval_n1_500_seed42.pkl"
+SAVED_PATH = EVAL_PATH / "eval_n1_500_seed42_precompute.pkl"
+
+original_BBs = None
+JSON_PRECOMPUTE_PATH = PRECOMPUTE_PATH / "n1_stock_properties.json"
+
+# original_BBs = set(stock)
+# JSON_PRECOMPUTE_PATH = None
 #######
 
 
@@ -34,7 +41,7 @@ solved_count = 0
 for i in tqdm(range(len(targets))):
     target = targets[i]
     fragmenter = BRICSFragmenter(target)
-    retro_tool = Retrosynthesis(fragmenter, set(stock))
+    retro_tool = Retrosynthesis(fragmenter, original_BBs=original_BBs, mol_properties_path=JSON_PRECOMPUTE_PATH)
     retro_tool.fragment_retrosynthesis()  # run retrosynthesis
     retro_solution = RetrosynthesisSolution(retro_tool)
     retro_solution.fill_solutions()
