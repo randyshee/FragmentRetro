@@ -3,7 +3,7 @@ from typing import cast
 
 from rdkit import Chem
 
-from FragmentRetro.type_definitions import BBsType
+from FragmentRetro.utils.type_definitions import BBsType
 
 
 class SubstructureMatcher:
@@ -95,7 +95,7 @@ class SubstructureMatcher:
                 smarts_with_indices = smarts_with_indices.replace(
                     # The '&' here is from `Chem.MolToSmarts(fragment_mol)`
                     f"[#{atom.GetAtomicNum()}&H{num_hydrogens}:{idx}]",
-                    f"[#{atom.GetAtomicNum()}H{num_hydrogens},H{num_hydrogens+1}]",
+                    f"[#{atom.GetAtomicNum()}&H{num_hydrogens},#{atom.GetAtomicNum()}&H{num_hydrogens+1}]",
                 )
 
         # Remove atom map indices

@@ -1,7 +1,12 @@
+from pathlib import Path
+from typing import Optional, cast
+
 from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.logging_config import logger
 from FragmentRetro.substructure_matcher import SubstructureMatcher
-from FragmentRetro.type_definitions import (
+from FragmentRetro.utils.filter_compound import CompoundFilter
+from FragmentRetro.utils.helpers import replace_dummy_atoms_regex
+from FragmentRetro.utils.logging_config import logger
+from FragmentRetro.utils.type_definitions import (
     BBsType,
     CombBBsDictType,
     CombType,
@@ -10,13 +15,25 @@ from FragmentRetro.type_definitions import (
 
 
 class Retrosynthesis:
-    def __init__(self, fragmenter: Fragmenter, original_BBs: BBsType):
+    def __init__(
+        self, fragmenter: Fragmenter, original_BBs: Optional[BBsType] = None, mol_properties_path: Optional[Path] = None
+    ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
-        self.original_BBs = original_BBs
         self.valid_combinations_dict: StageCombDictType = {}  # store valid combs for each stage
         self.invalid_combinations_dict: StageCombDictType = {}  # store invalid combs for each stage
         self.comb_bbs_dict: CombBBsDictType = {}  # store valid BBs for fragment combs
+
+        if original_BBs is not None and mol_properties_path is not None:
+            logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
+        elif original_BBs is None and mol_properties_path is None:
+            logger.critical("Either original_BBs or mol_properties_path must be provided.")
+        if mol_properties_path is not None:
+            self.use_filter = True
+            self.compound_filter = CompoundFilter(mol_properties_path)
+        else:
+            self.use_filter = False
+            self.original_BBs = original_BBs
 
     def _check_effective_comb(self, comb: CombType) -> bool:
         """Check if a combination is effective.
@@ -56,7 +73,12 @@ class Retrosynthesis:
         """
         len_comb = len(comb)
         if len_comb == 1:
-            return self.original_BBs
+            if self.use_filter:
+                comb_smiles = self.fragmenter.get_combination_smiles(comb)
+                no_dummy_smiles = replace_dummy_atoms_regex(comb_smiles)
+                return self.compound_filter.get_filtered_BBs(no_dummy_smiles)
+            else:
+                return cast(BBsType, self.original_BBs)
         len_minus_one_valid_combs = self.valid_combinations_dict.get(len_comb - 1, [])
         BBs: BBsType = set()
         for valid_comb in len_minus_one_valid_combs:
@@ -104,6 +126,8 @@ class Retrosynthesis:
                 self.comb_bbs_dict[comb] = valid_BBs
             else:
                 self.invalid_combinations_dict[stage].append(comb)
+        if stage == 1 and self.use_filter:
+            del self.compound_filter  # save memory
         logger.info(f"Stage {stage}: {len(self.valid_combinations_dict[stage])} valid combinations")
         logger.info(f"Stage {stage}: {len(self.invalid_combinations_dict[stage])} invalid combinations")
 

@@ -4,9 +4,9 @@ from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-from FragmentRetro.logging_config import logger
 from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.type_definitions import CombType, SolutionType
+from FragmentRetro.utils.logging_config import logger
+from FragmentRetro.utils.type_definitions import CombType, SolutionType
 
 
 class RetrosynthesisSolution:

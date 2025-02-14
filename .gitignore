@@ -46,3 +46,7 @@ htmlcov/
 site/
 ChEMBL/
 r-BRICS/
+data/evaluations/
+data/paroutes/
+paroutes_solve.py
+src/fragmentation/ringBRICS.py

@@ -9,7 +9,7 @@ def _find_fragmentation_bonds(mol: Mol) -> BondsType:
     return list(FindBRICSBonds(mol))
 ```
 
-where `BondsType` is defined in [type_definitions.py](/src/FragmentRetro/type_definitions.py) as:
+where `BondsType` is defined in [type_definitions.py](/src/FragmentRetro/utils/type_definitions.py) as:
 
 ```python
 BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
@@ -18,7 +18,7 @@ BondsType: TypeAlias = list[BondType]
 
 ## Source Code
 
-::: FragmentRetro.type_definitions
+::: FragmentRetro.utils.type_definitions
     handler: python
     options:
       show_root_heading: true
@@ -31,3 +31,4 @@ BondsType: TypeAlias = list[BondType]
         - CombType
         - StageCombDictType
         - CombBBsDictType
+        - MolProperties

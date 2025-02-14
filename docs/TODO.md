@@ -10,6 +10,7 @@
 - [ ] Write tests for `_get_combination_smiles`.
 - [ ] Write tests for the `Retrosynthesis` class
 - [ ] Write tests for the `RetrosynthesisSolution` class
+- [ ] Write tests for the `CompoundFilter` class (with or without filter should work the same for substructure matcher)
 
 ## New Fragmentation Rules
 
