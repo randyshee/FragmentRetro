@@ -29,6 +29,12 @@ StageCombDictType: TypeAlias = dict[int, list[CombType]]
 # Store the building blocks for each combination
 CombBBsDictType: TypeAlias = dict[CombType, BBsType]
 
+# Store the filtered indices
+FilterIndicesType: TypeAlias = list[int]
+
+# Store the filtered indices (from CompoundFilter) for each combination
+CombFilterIndicesDictType: TypeAlias = dict[CombType, FilterIndicesType]
+
 
 class MolProperties(TypedDict, total=True):
     """Type definition for molecular properties."""
