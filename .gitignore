@@ -50,3 +50,4 @@ data/evaluations/
 data/paroutes/
 paroutes_solve.py
 src/fragmentation/ringBRICS.py
+data/buyables/
