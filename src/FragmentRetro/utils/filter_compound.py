@@ -1,13 +1,19 @@
 import json
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
+from tqdm import tqdm
 
 from FragmentRetro.utils.helpers import canonicalize_smiles
 from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import BBsType, MolProperties
+from FragmentRetro.utils.type_definitions import (
+    BBsType,
+    FilterIndicesType,
+    MolProperties,
+)
 
 
 def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
@@ -50,12 +56,12 @@ def precompute_properties(smiles_list: list[str], output_path: Path, fpSize: int
         output_path: The path to the output JSON file.
     """
     results = []
-    for smiles in smiles_list:
+    for smiles in tqdm(smiles_list, desc="Precomputing molecular properties"):
         try:
             mol_properties = get_mol_properties(smiles, fpSize=fpSize)
             results.append(mol_properties)
         except ValueError as e:
-            print(f"Error processing SMILES '{smiles}': {e}")
+            logger.error(f"Error processing SMILES '{smiles}': {e} during precompute_properties")
             continue
 
     with open(output_path, "w") as f:
@@ -108,11 +114,14 @@ class CompoundFilter:
         for i, pfp in enumerate(self.pfp_list):
             self.pfp_bit_array[i, pfp] = True
 
-    def filter_compounds(self, smiles: str) -> list[int]:
-        """Filters compounds based on a query SMILES string.
+    def filter_compounds(
+        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
+    ) -> FilterIndicesType:
+        """Filters compounds based on a query SMILES string and prefiltered indices.
 
         Args:
             smiles: The query SMILES string.
+            prefiltered_indices: A list of prefiltered indices.
 
         Returns:
             A list of indices of the compounds that pass the filter.
@@ -134,11 +143,15 @@ class CompoundFilter:
         query_pfp_bit_array[pfp] = True
 
         # Filtering based on molecular properties
-        indices = np.where(
+        indices_array = np.where(
             (self.num_heavy_atoms_array >= num_heavy_atoms)
             & (self.num_rings_array >= num_rings)
             & (self.pfp_len_array >= pfp_len)
-        )[0].tolist()
+        )[0]
+        if prefiltered_indices is None:
+            indices = indices_array.tolist()
+        else:
+            indices = np.intersect1d(indices_array, prefiltered_indices).tolist()
 
         # TODO: this might not be the most efficeint way
         # check pfp of query is subset of pfp of filtered compounds
@@ -146,25 +159,32 @@ class CompoundFilter:
         for i in indices:
             if np.all(self.pfp_bit_array[i, query_pfp_bit_array]):
                 filtered_indices.append(i)
-
-        logger.info(f"Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
+        if prefiltered_indices is None:
+            logger.info(f"Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
+        else:
+            logger.info(f"Originally {len(prefiltered_indices)} BBs, filtered down to {len(filtered_indices)}")
 
         return filtered_indices
 
-    def get_filtered_BBs(self, smiles: str) -> BBsType:
-        """Filters building blocks based on a query SMILES string.
+    def get_filtered_BBs(
+        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
+    ) -> tuple[FilterIndicesType, BBsType]:
+        """Filters building blocks based on a query SMILES string and prefiltered indices.
 
         This method filters the building blocks based on the properties
-        of the provided SMILES string. It uses the `filter_compounds`
-        method to get a list of indices that pass the filter, and then
-        returns a set of the corresponding canonical SMILES strings.
+        of the provided SMILES string and a list of prefiltered indices.
+        It uses the `filter_compounds` method to get a list of indices
+        that pass the filter, and then returns a set of the corresponding
+        canonical SMILES strings.
 
         Args:
             smiles: The query SMILES string.
+            prefiltered_indices: A list of prefiltered indices.
 
         Returns:
-            A set of canonical SMILES strings of the building blocks that
-            pass the filter.
+            tuple[list[int], BBsType]: A tuple containing a list of indices
+            of the compounds that pass the filter and a set of canonical
+            SMILES strings of the building blocks that pass the filter.
         """
-        filtered_indices = self.filter_compounds(smiles)
-        return set(self.cano_smiles_list[i] for i in filtered_indices)
+        filtered_indices = self.filter_compounds(smiles, prefiltered_indices)
+        return filtered_indices, set(self.cano_smiles_list[i] for i in filtered_indices)

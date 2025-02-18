@@ -49,4 +49,7 @@ r-BRICS/
 data/evaluations/
 data/paroutes/
 paroutes_solve.py
+uspto190_solve.py
 src/fragmentation/ringBRICS.py
+data/buyables/
+data/precompute/
