@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
+from tqdm import tqdm
 
 from FragmentRetro.utils.helpers import canonicalize_smiles
 from FragmentRetro.utils.logging_config import logger
@@ -50,12 +51,12 @@ def precompute_properties(smiles_list: list[str], output_path: Path, fpSize: int
         output_path: The path to the output JSON file.
     """
     results = []
-    for smiles in smiles_list:
+    for smiles in tqdm(smiles_list, desc="Precomputing molecular properties"):
         try:
             mol_properties = get_mol_properties(smiles, fpSize=fpSize)
             results.append(mol_properties)
         except ValueError as e:
-            print(f"Error processing SMILES '{smiles}': {e}")
+            logger.error(f"Error processing SMILES '{smiles}': {e} during precompute_properties")
             continue
 
     with open(output_path, "w") as f:
