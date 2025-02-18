@@ -4,10 +4,7 @@ from typing import Optional, cast
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.substructure_matcher import SubstructureMatcher
 from FragmentRetro.utils.filter_compound import CompoundFilter
-from FragmentRetro.utils.helpers import (
-    remove_indices_before_dummy,
-    replace_dummy_atoms_regex,
-)
+from FragmentRetro.utils.helpers import remove_indices_before_dummy
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import (
     BBsType,
@@ -117,9 +114,8 @@ class Retrosynthesis:
         len_comb = len(comb)
         if self.use_filter:
             comb_smiles = self.fragmenter.get_combination_smiles(comb)
-            no_dummy_smiles = replace_dummy_atoms_regex(comb_smiles)
             prefiltered_indices = self._get_prefiltered_indices(comb)
-            filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(no_dummy_smiles, prefiltered_indices)
+            filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(comb_smiles, prefiltered_indices)
             self.comb_filter_indices_dict[comb] = filtered_indices
             return filtered_BBs
 
