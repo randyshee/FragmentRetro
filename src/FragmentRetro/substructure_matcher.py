@@ -8,14 +8,16 @@ from FragmentRetro.utils.type_definitions import BBsType
 
 
 class SubstructureMatcher:
-    def __init__(self, BBs: BBsType = set()):
+    def __init__(self, BBs: BBsType = set(), useChirality: bool = True):
         """
         Initialize with a set of building blocks (BBs).
 
         Args:
             BBs: Set of building block SMILES strings.
+            useChirality: Whether to match chirality.
         """
         self.BBs = BBs
+        self.useChirality = useChirality
 
     @staticmethod
     def convert_to_smarts(fragment_smiles: str) -> str:
@@ -146,6 +148,8 @@ class SubstructureMatcher:
             Set of building block SMILES strings that the fragment matches.
         """
         logger.info(f"Matching fragment {fragment} to building blocks")
-        strict_substructure_BBs = set(bb for bb in self.BBs if self.is_strict_substructure(fragment, bb))
+        strict_substructure_BBs = set(
+            bb for bb in self.BBs if self.is_strict_substructure(fragment, bb, self.useChirality)
+        )
         logger.info(f"Found {len(strict_substructure_BBs)} matching building")
         return strict_substructure_BBs
