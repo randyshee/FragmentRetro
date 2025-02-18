@@ -118,8 +118,8 @@ class Retrosynthesis:
         if self.use_filter:
             comb_smiles = self.fragmenter.get_combination_smiles(comb)
             no_dummy_smiles = replace_dummy_atoms_regex(comb_smiles)
-            prefiltered_set = self._get_prefiltered_indices(comb)
-            filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(no_dummy_smiles, prefiltered_set)
+            prefiltered_indices = self._get_prefiltered_indices(comb)
+            filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(no_dummy_smiles, prefiltered_indices)
             self.comb_filter_indices_dict[comb] = filtered_indices
             return filtered_BBs
 
