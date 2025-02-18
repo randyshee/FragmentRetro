@@ -5,15 +5,14 @@
 ## Example Usage
 
 ```python
-def _find_fragmentation_bonds(mol: Mol) -> BondsType:
+def _find_fragmentation_bonds(mol: Mol) -> list[BondType]:
     return list(FindBRICSBonds(mol))
 ```
 
-where `BondsType` is defined in [type_definitions.py](/src/FragmentRetro/utils/type_definitions.py) as:
+where `BondType` is defined in [type_definitions.py](/src/FragmentRetro/utils/type_definitions.py) as:
 
 ```python
 BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
-BondsType: TypeAlias = list[BondType]
 ```
 
 ## Source Code
@@ -25,10 +24,13 @@ BondsType: TypeAlias = list[BondType]
       show_source: true
       members:
         - BondType
-        - BondsType
         - AtomMappingType
-        - AtomMappingsType
         - CombType
+        - SolutionType
+        - BBsType
         - StageCombDictType
         - CombBBsDictType
+        - FragmentBBsDictType
+        - FilterIndicesType
+        - CombFilterIndicesDictType
         - MolProperties

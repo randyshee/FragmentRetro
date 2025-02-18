@@ -6,7 +6,6 @@ import pytest
 
 from FragmentRetro.substructure_matcher import SubstructureMatcher
 from FragmentRetro.utils.filter_compound import CompoundFilter, precompute_properties
-from FragmentRetro.utils.helpers import replace_dummy_atoms_regex
 
 DATA_PATH = Path(__file__).parent.parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
@@ -50,8 +49,7 @@ def test_filter_compound(fragment_smiles):
     direct_valid_BBs = substructure_matcher.get_substructure_BBs(fragment_smiles)
 
     # with filter
-    no_dummy_smiles = replace_dummy_atoms_regex(fragment_smiles)
-    _, filtered_BBs = compound_filter.get_filtered_BBs(no_dummy_smiles)
+    _, filtered_BBs = compound_filter.get_filtered_BBs(fragment_smiles)
     filtered_substructure_matcher = SubstructureMatcher(filtered_BBs, useChirality=True)
     filtered_valid_BBs = filtered_substructure_matcher.get_substructure_BBs(fragment_smiles)
     assert (

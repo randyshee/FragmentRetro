@@ -7,7 +7,7 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from tqdm import tqdm
 
-from FragmentRetro.utils.helpers import canonicalize_smiles
+from FragmentRetro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import (
     BBsType,
@@ -32,6 +32,10 @@ def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
         ValueError: If the SMILES string is invalid and cannot be converted
             to an RDKit molecule.
     """
+    if "*" in smiles:
+        logger.error(f"Invalid smiles string: {smiles}, contains dummy atom '*'")
+        raise ValueError(f"Invalid smiles string: {smiles}, contains dummy atom '*'")
+
     cano_smiles = canonicalize_smiles(smiles)
     mol = Chem.MolFromSmiles(cano_smiles)
     # solve C++ signature problems?
@@ -118,6 +122,8 @@ class CompoundFilter:
         self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
     ) -> FilterIndicesType:
         """Filters compounds based on a query SMILES string and prefiltered indices.
+        Note that dummy atoms have to be replaced by hydrogen atoms so that we can get
+        the minimal format for pattern fingerprint processing.
 
         Args:
             smiles: The query SMILES string.
@@ -126,13 +132,14 @@ class CompoundFilter:
         Returns:
             A list of indices of the compounds that pass the filter.
         """
+        no_dummy_smiles = replace_dummy_atoms_regex(smiles)
         try:
-            mol_properties = get_mol_properties(smiles, fpSize=self.fpSize)
+            mol_properties = get_mol_properties(no_dummy_smiles, fpSize=self.fpSize)
         except ValueError as e:
             print(f"Invalid SMILES: {e}")
             return []
 
-        logger.info(f"Filtering BBs for {smiles}")
+        logger.info(f"Filtering BBs for {no_dummy_smiles} ( {smiles} )")
 
         num_heavy_atoms = mol_properties["num_heavy_atoms"]
         num_rings = mol_properties["num_rings"]

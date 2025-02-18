@@ -19,10 +19,10 @@ class TestFragmenter(Fragmenter):
         """
         super().__init__(smiles)
 
-    def _find_fragmentation_bonds(self, mol: Mol) -> BondsType:
+    def _find_fragmentation_bonds(self, mol: Mol) -> list[BondType]:
         return FindTestBonds(mol)
 
-    def _break_bonds(self, mol: Mol, bonds: BondsType) -> Mol:
+    def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
         return BreakTestBonds(mol, bonds)
 ```
 
