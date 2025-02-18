@@ -127,7 +127,7 @@ class CompoundFilter:
             A list of indices of the compounds that pass the filter.
         """
         try:
-            mol_properties = get_mol_properties(smiles)
+            mol_properties = get_mol_properties(smiles, fpSize=self.fpSize)
         except ValueError as e:
             print(f"Invalid SMILES: {e}")
             return []
@@ -148,17 +148,17 @@ class CompoundFilter:
             & (self.num_rings_array >= num_rings)
             & (self.pfp_len_array >= pfp_len)
         )[0]
-        if prefiltered_indices is None:
-            indices = indices_array.tolist()
-        else:
-            indices = np.intersect1d(indices_array, prefiltered_indices).tolist()
+        if prefiltered_indices is not None:
+            indices_array = np.intersect1d(indices_array, prefiltered_indices)
 
-        # TODO: this might not be the most efficeint way
-        # check pfp of query is subset of pfp of filtered compounds
-        filtered_indices = []
-        for i in indices:
-            if np.all(self.pfp_bit_array[i, query_pfp_bit_array]):
-                filtered_indices.append(i)
+        # check pfp of query is a subset of pfp of filtered compounds
+        if indices_array.size == 0:
+            filtered_indices = []
+        else:
+            filtered_indices = indices_array[
+                np.all(self.pfp_bit_array[indices_array][:, query_pfp_bit_array], axis=1)
+            ].tolist()
+
         if prefiltered_indices is None:
             logger.info(f"Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
         else:

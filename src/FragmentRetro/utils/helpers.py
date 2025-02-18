@@ -66,3 +66,15 @@ def replace_dummy_atoms_regex(smiles: str) -> str:
         A SMILES string where '[{int}*]' is replaced with '[H]'.
     """
     return canonicalize_smiles(re.sub(r"\[\d*\*\]", "[H]", smiles))
+
+
+def remove_indices_before_dummy(smiles: str) -> str:
+    """Removes indices before asterisks (*) in a SMILES string using regex.
+
+    Args:
+        smiles: The SMILES string containing indices before asterisks.
+
+    Returns:
+        The SMILES string with indices before asterisks removed.
+    """
+    return re.sub(r"\[\d*\*\]", "[*]", smiles)

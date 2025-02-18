@@ -29,6 +29,9 @@ StageCombDictType: TypeAlias = dict[int, list[CombType]]
 # Store the building blocks for each combination
 CombBBsDictType: TypeAlias = dict[CombType, BBsType]
 
+# Store the combination indices and building blocks for each fragment SMILES (can have dummy atoms)
+FragmentBBsDictType: TypeAlias = dict[str, tuple[CombType, BBsType]]
+
 # Store the filtered indices
 FilterIndicesType: TypeAlias = list[int]
 
