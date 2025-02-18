@@ -127,7 +127,7 @@ class CompoundFilter:
             A list of indices of the compounds that pass the filter.
         """
         try:
-            mol_properties = get_mol_properties(smiles)
+            mol_properties = get_mol_properties(smiles, fpSize=self.fpSize)
         except ValueError as e:
             print(f"Invalid SMILES: {e}")
             return []

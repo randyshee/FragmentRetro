@@ -12,8 +12,10 @@ if __name__ == "__main__":
         n1_stock = [line.strip() for line in f.readlines()]
     PRECOMPUTE_PATH.mkdir(parents=True, exist_ok=True)
     precompute_properties(n1_stock, PRECOMPUTE_PATH / "n1_stock_properties.json")
+    # precompute_properties(n1_stock, PRECOMPUTE_PATH / "n1_stock_properties_fp1024.json", fpSize=1024)
 
     with open(PAROUTES_PATH / "n5-stock.txt", "r") as f:
         n5_stock = [line.strip() for line in f.readlines()]
     PRECOMPUTE_PATH.mkdir(parents=True, exist_ok=True)
     precompute_properties(n5_stock, PRECOMPUTE_PATH / "n5_stock_properties.json")
+    # precompute_properties(n5_stock, PRECOMPUTE_PATH / "n5_stock_properties_fp1024.json", fpSize=1024)

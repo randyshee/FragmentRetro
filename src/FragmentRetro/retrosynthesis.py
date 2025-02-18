@@ -18,7 +18,11 @@ from FragmentRetro.utils.type_definitions import (
 
 class Retrosynthesis:
     def __init__(
-        self, fragmenter: Fragmenter, original_BBs: Optional[BBsType] = None, mol_properties_path: Optional[Path] = None
+        self,
+        fragmenter: Fragmenter,
+        original_BBs: Optional[BBsType] = None,
+        mol_properties_path: Optional[Path] = None,
+        fpSize: int = 2048,
     ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
@@ -32,7 +36,8 @@ class Retrosynthesis:
             logger.critical("Either original_BBs or mol_properties_path must be provided.")
         if mol_properties_path is not None:
             self.use_filter = True
-            self.compound_filter = CompoundFilter(mol_properties_path)
+            self.fpSize = fpSize
+            self.compound_filter = CompoundFilter(mol_properties_path, fpSize=self.fpSize)
             self.comb_filter_indices_dict: CombFilterIndicesDictType = {}
         else:
             self.use_filter = False
