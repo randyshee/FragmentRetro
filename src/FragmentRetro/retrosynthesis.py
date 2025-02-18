@@ -4,7 +4,10 @@ from typing import Optional, cast
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.substructure_matcher import SubstructureMatcher
 from FragmentRetro.utils.filter_compound import CompoundFilter
-from FragmentRetro.utils.helpers import replace_dummy_atoms_regex
+from FragmentRetro.utils.helpers import (
+    remove_indices_before_dummy,
+    replace_dummy_atoms_regex,
+)
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import (
     BBsType,
@@ -160,17 +163,18 @@ class Retrosynthesis:
 
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
+            fragment_smiles_without_indices = remove_indices_before_dummy(fragment_smiles)
             # get building blocks for comb
-            if fragment_smiles in self.fragment_bbs_dict:
-                logger.info(f"Fragment {fragment_smiles} already processed")
-                previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles]
+            if fragment_smiles_without_indices in self.fragment_bbs_dict:
+                logger.info(f"Fragment {fragment_smiles} ( {fragment_smiles_without_indices} ) already processed")
+                previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles_without_indices]
                 # have to store filtered indices as what's done in `_get_possible_BBs_for_comb`
                 self.comb_filter_indices_dict[comb] = self.comb_filter_indices_dict[previous_comb]
             else:
                 possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
                 comb_matcher = SubstructureMatcher(possible_comb_BBs)
                 valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
-            self.fragment_bbs_dict[fragment_smiles] = (comb, valid_BBs)
+                self.fragment_bbs_dict[fragment_smiles_without_indices] = (comb, valid_BBs)
 
             # store valid comb and BBs
             if len(valid_BBs) > 0:
