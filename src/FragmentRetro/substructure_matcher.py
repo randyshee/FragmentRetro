@@ -3,6 +3,7 @@ from typing import cast
 
 from rdkit import Chem
 
+from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import BBsType
 
 
@@ -144,4 +145,5 @@ class SubstructureMatcher:
         Returns:
             Set of building block SMILES strings that the fragment matches.
         """
+        logger.info(f"Matching fragment {fragment} to building blocks")
         return set(bb for bb in self.BBs if self.is_strict_substructure(fragment, bb))

@@ -12,6 +12,7 @@ from FragmentRetro.utils.type_definitions import (
     CombFilterIndicesDictType,
     CombType,
     FilterIndicesType,
+    FragmentBBsDictType,
     StageCombDictType,
 )
 
@@ -29,6 +30,7 @@ class Retrosynthesis:
         self.valid_combinations_dict: StageCombDictType = {}  # store valid combs for each stage
         self.invalid_combinations_dict: StageCombDictType = {}  # store invalid combs for each stage
         self.comb_bbs_dict: CombBBsDictType = {}  # store valid BBs for fragment combs
+        self.fragment_bbs_dict: FragmentBBsDictType = {}  # store valid BBs for fragments SMILES
 
         if original_BBs is not None and mol_properties_path is not None:
             logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
@@ -159,9 +161,17 @@ class Retrosynthesis:
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
             # get building blocks for comb
-            possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
-            comb_matcher = SubstructureMatcher(possible_comb_BBs)
-            valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
+            if fragment_smiles in self.fragment_bbs_dict:
+                logger.info(f"Fragment {fragment_smiles} already processed")
+                previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles]
+                # have to store filtered indices as what's done in `_get_possible_BBs_for_comb`
+                self.comb_filter_indices_dict[comb] = self.comb_filter_indices_dict[previous_comb]
+            else:
+                possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
+                comb_matcher = SubstructureMatcher(possible_comb_BBs)
+                valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
+            self.fragment_bbs_dict[fragment_smiles] = (comb, valid_BBs)
+
             # store valid comb and BBs
             if len(valid_BBs) > 0:
                 self.valid_combinations_dict[stage].append(comb)
@@ -189,4 +199,5 @@ class Retrosynthesis:
             # save memory
             del self.compound_filter
             del self.comb_filter_indices_dict
+        del self.fragment_bbs_dict
         return self.valid_combinations_dict
