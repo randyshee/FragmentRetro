@@ -1,5 +1,7 @@
+import concurrent.futures
 import re
-from typing import cast
+from multiprocessing import cpu_count
+from typing import Optional, cast
 
 from rdkit import Chem
 
@@ -8,16 +10,27 @@ from FragmentRetro.utils.type_definitions import BBsType
 
 
 class SubstructureMatcher:
-    def __init__(self, BBs: BBsType = set(), useChirality: bool = True):
+    def __init__(
+        self,
+        BBs: BBsType = set(),
+        useChirality: bool = True,
+        parallelize: bool = False,
+        num_cores: Optional[int] = None,
+    ):
         """
         Initialize with a set of building blocks (BBs).
 
         Args:
             BBs: Set of building block SMILES strings.
             useChirality: Whether to match chirality.
+            parallelize: Whether to enable parallel processing.
+            num_cores: Number of CPU cores to use for parallel processing. If None, uses all available cores.
         """
         self.BBs = BBs
         self.useChirality = useChirality
+        self.parallelize = parallelize
+        # Use all available cores if not specified
+        self.num_cores = num_cores if num_cores is not None else cpu_count()
 
     @staticmethod
     def convert_to_smarts(fragment_smiles: str) -> str:
@@ -148,8 +161,25 @@ class SubstructureMatcher:
             Set of building block SMILES strings that the fragment matches.
         """
         logger.info(f"Matching fragment {fragment} to building blocks")
-        strict_substructure_BBs = set(
-            bb for bb in self.BBs if self.is_strict_substructure(fragment, bb, self.useChirality)
-        )
+        if self.parallelize:
+            logger.info(f"Using {self.num_cores} cores for parallel processing")
+            with concurrent.futures.ProcessPoolExecutor(max_workers=self.num_cores) as executor:
+                future_to_bb = {
+                    executor.submit(self.is_strict_substructure, fragment, bb, self.useChirality): bb for bb in self.BBs
+                }
+
+                strict_substructure_BBs = set()
+                for future in concurrent.futures.as_completed(future_to_bb):
+                    bb = future_to_bb[future]
+                    try:
+                        if future.result():  # If the result is True, add the building block to the set
+                            strict_substructure_BBs.add(bb)
+                    except Exception as exc:
+                        logger.error(f"Building block {bb} generated an exception: {exc}")
+        else:
+            # Fallback to single-threaded execution
+            strict_substructure_BBs = set(
+                bb for bb in self.BBs if self.is_strict_substructure(fragment, bb, self.useChirality)
+            )
         logger.info(f"Found {len(strict_substructure_BBs)} matching building")
         return strict_substructure_BBs
