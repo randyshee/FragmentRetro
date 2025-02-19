@@ -9,8 +9,6 @@ from FragmentRetro.substructure_matcher import SubstructureMatcher
 DATA_PATH = Path(__file__).parent.parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
 
-fragment_smiles_list = ["[5*]N1CCC[C@@]1([13*])C", "[4*]CCN[5*]", "[4*]C[8*]", "[*]C[*]", "[3*]O[3*]"]
-
 TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
         "case_number": 1,
