@@ -136,6 +136,9 @@ class Retrosynthesis:
                 return filtered_BBs
             else:
                 possible_BBs = self._get_possible_BBs_for_comb_no_filter(comb)
+                logger.info(
+                    f"[Retrosynthesis] Number of possible BBs (when no filter) for {comb_smiles}: {len(possible_BBs)}"
+                )
                 return possible_BBs.intersection(filtered_BBs)
 
     def _retro_stage(self, stage: int) -> None:
