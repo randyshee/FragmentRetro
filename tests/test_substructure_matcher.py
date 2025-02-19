@@ -1,8 +1,13 @@
 """Tests for substructure matcher."""
 
+from pathlib import Path
+
 import pytest
 
 from FragmentRetro.substructure_matcher import SubstructureMatcher
+
+DATA_PATH = Path(__file__).parent.parent / "data"
+PAROUTES_PATH = DATA_PATH / "paroutes"
 
 TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
@@ -198,6 +203,28 @@ def test_convert_to_smarts(case_number, fragment_smiles, expected_smarts, descri
 def test_is_strict_substructure(case_number, fragment_smiles, molecule_smiles, expected, description):
     result = SubstructureMatcher.is_strict_substructure(fragment_smiles, molecule_smiles)
     assert result == expected, f"Case {case_number} failed: {description}"
+
+
+@pytest.mark.parametrize(
+    "fragment_smiles",
+    [
+        "[5*]N1CCC[C@@]1([13*])C",
+        "[4*]CCN[5*]",
+        "[4*]C[8*]",
+        "[*]C[*]",
+        "[3*]O[3*]",
+        "[*]c1ccc(Nc2ncn(-c3ccnc(N4CC(C)N(C(C)=O)C(C)C4)c3)n2)cc1",
+    ],
+)
+def test_parallel_get_substructure_BBs(fragment_smiles):
+    with open(PAROUTES_PATH / "n1-stock.txt", "r") as f:
+        n1_stock = [line.strip() for line in f.readlines()]
+    n1_stock_subset = set(n1_stock[:500])
+    no_parallel_matcher = SubstructureMatcher(n1_stock_subset, parallelize=False)
+    parallel_matcher = SubstructureMatcher(n1_stock_subset, parallelize=True, num_cores=5, core_factor=5)
+    assert no_parallel_matcher.get_substructure_BBs(fragment_smiles) == parallel_matcher.get_substructure_BBs(
+        fragment_smiles
+    ), f"Parallel and non-parallel results differ for fragment SMILES: {fragment_smiles}"
 
 
 if __name__ == "__main__":

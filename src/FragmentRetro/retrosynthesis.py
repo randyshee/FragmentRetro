@@ -24,6 +24,9 @@ class Retrosynthesis:
         original_BBs: Optional[BBsType] = None,
         mol_properties_path: Optional[Path] = None,
         fpSize: int = 2048,
+        parallelize: bool = False,
+        num_cores: Optional[int] = None,
+        core_factor: int = 10,
     ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
@@ -31,6 +34,9 @@ class Retrosynthesis:
         self.invalid_combinations_dict: StageCombDictType = {}  # store invalid combs for each stage
         self.comb_bbs_dict: CombBBsDictType = {}  # store valid BBs for fragment combs
         self.fragment_bbs_dict: FragmentBBsDictType = {}  # store valid BBs for fragments SMILES
+        self.parallelize = parallelize
+        self.num_cores = num_cores
+        self.core_factor = core_factor
 
         if original_BBs is not None and mol_properties_path is not None:
             logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
@@ -180,7 +186,12 @@ class Retrosynthesis:
             else:
                 possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
                 logger.info(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
-                comb_matcher = SubstructureMatcher(possible_comb_BBs)
+                comb_matcher = SubstructureMatcher(
+                    possible_comb_BBs,
+                    parallelize=self.parallelize,
+                    num_cores=self.num_cores,
+                    core_factor=self.core_factor,
+                )
                 valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
                 self.fragment_bbs_dict[fragment_smiles_without_indices] = (comb, valid_BBs)
 
