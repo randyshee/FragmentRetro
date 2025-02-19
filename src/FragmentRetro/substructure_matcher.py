@@ -160,9 +160,9 @@ class SubstructureMatcher:
         Returns:
             Set of building block SMILES strings that the fragment matches.
         """
-        logger.info(f"Matching fragment {fragment} to building blocks")
+        logger.info(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
         if self.parallelize:
-            logger.info(f"Using {self.num_cores} cores for parallel processing")
+            logger.info(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
             with ProcessPoolExecutor(max_workers=self.num_cores) as executor:
                 future_to_bb = {
                     executor.submit(self.is_strict_substructure, fragment, bb, self.useChirality): bb for bb in self.BBs
@@ -181,5 +181,5 @@ class SubstructureMatcher:
             strict_substructure_BBs = set(
                 bb for bb in self.BBs if self.is_strict_substructure(fragment, bb, self.useChirality)
             )
-        logger.info(f"Found {len(strict_substructure_BBs)} matching building")
+        logger.info(f"[SubstructureMatcher] Found {len(strict_substructure_BBs)} matching building")
         return strict_substructure_BBs
