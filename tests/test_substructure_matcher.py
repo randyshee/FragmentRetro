@@ -213,6 +213,7 @@ def test_is_strict_substructure(case_number, fragment_smiles, molecule_smiles, e
         "[4*]C[8*]",
         "[*]C[*]",
         "[3*]O[3*]",
+        "[*]c1ccc(Nc2ncn(-c3ccnc(N4CC(C)N(C(C)=O)C(C)C4)c3)n2)cc1",
     ],
 )
 def test_parallel_get_substructure_BBs(fragment_smiles):
