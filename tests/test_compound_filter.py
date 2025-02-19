@@ -19,8 +19,6 @@ n1_stock_subset = n1_stock[:500]
 PRECOMPUTE_PATH.mkdir(parents=True, exist_ok=True)
 precompute_properties(n1_stock_subset, MOL_PROPERTIES_PATH, fpSize=2048)
 
-fragment_smiles_list = ["[5*]N1CCC[C@@]1([13*])C", "[4*]CCN[5*]", "[4*]C[8*]", "[*]C[*]", "[3*]O[3*]"]
-
 
 def test_precompute_properties():
     assert MOL_PROPERTIES_PATH.exists()
