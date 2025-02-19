@@ -161,7 +161,7 @@ class SubstructureMatcher:
             Set of building block SMILES strings that the fragment matches.
         """
         logger.info(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
-        if self.parallelize:
+        if self.parallelize and len(self.BBs) >= self.num_cores:
             logger.info(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
             with ProcessPoolExecutor(max_workers=self.num_cores) as executor:
                 future_to_bb = {
