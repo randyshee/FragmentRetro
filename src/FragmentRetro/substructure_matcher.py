@@ -16,6 +16,7 @@ class SubstructureMatcher:
         useChirality: bool = True,
         parallelize: bool = False,
         num_cores: Optional[int] = None,
+        core_factor: int = 10,
     ):
         """
         Initialize with a set of building blocks (BBs).
@@ -25,12 +26,15 @@ class SubstructureMatcher:
             useChirality: Whether to match chirality.
             parallelize: Whether to enable parallel processing.
             num_cores: Number of CPU cores to use for parallel processing. If None, uses all available cores.
+            core_factor: Factor to determine when to use parallel processing. If the number of BBs is greater than
+                         `num_cores * core_factor`, parallel processing will be used.
         """
         self.BBs = BBs
         self.useChirality = useChirality
         self.parallelize = parallelize
         # Use all available cores if not specified
         self.num_cores = num_cores if num_cores is not None else cpu_count()
+        self.core_factor = core_factor
 
     @staticmethod
     def convert_to_smarts(fragment_smiles: str) -> str:
@@ -161,7 +165,7 @@ class SubstructureMatcher:
             Set of building block SMILES strings that the fragment matches.
         """
         logger.info(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
-        if self.parallelize and len(self.BBs) >= self.num_cores:
+        if self.parallelize and len(self.BBs) >= self.num_cores * self.core_factor:
             logger.info(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
             with ProcessPoolExecutor(max_workers=self.num_cores) as executor:
                 future_to_bb = {
