@@ -33,7 +33,7 @@ def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
             to an RDKit molecule.
     """
     if "*" in smiles:
-        logger.error(f"Invalid smiles string: {smiles}, contains dummy atom '*'")
+        logger.error(f"Invalid smiles string: {smiles}, contains dummy atom '*' during get_mol_properties")
         raise ValueError(f"Invalid smiles string: {smiles}, contains dummy atom '*'")
 
     cano_smiles = canonicalize_smiles(smiles)
@@ -139,7 +139,7 @@ class CompoundFilter:
             print(f"Invalid SMILES: {e}")
             return []
 
-        logger.info(f"Filtering BBs for {no_dummy_smiles} ( {smiles} )")
+        logger.info(f"[CompoundFilter] Filtering BBs for {no_dummy_smiles} ( {smiles} )")
 
         num_heavy_atoms = mol_properties["num_heavy_atoms"]
         num_rings = mol_properties["num_rings"]
@@ -167,9 +167,11 @@ class CompoundFilter:
             ].tolist()
 
         if prefiltered_indices is None:
-            logger.info(f"Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
+            logger.info(f"[CompoundFilter] Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
         else:
-            logger.info(f"Originally {len(prefiltered_indices)} BBs, filtered down to {len(filtered_indices)}")
+            logger.info(
+                f"[CompoundFilter] Originally {len(prefiltered_indices)} BBs, filtered down to {len(filtered_indices)}"
+            )
 
         return filtered_indices
 

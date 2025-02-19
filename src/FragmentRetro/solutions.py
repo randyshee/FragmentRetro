@@ -130,9 +130,9 @@ class RetrosynthesisSolution:
         """
         all_img = []
         for solution in solutions:
-            logger.info(f"Solution: {solution}")
+            logger.info(f"[RetrosynthesisSolution] Solution: {solution}")
             all_smiles = self.get_solution_smiles(solution)
-            logger.info(f"SMILES: {all_smiles}")
+            logger.info(f"[RetrosynthesisSolution] SMILES: {all_smiles}")
             # Convert SMILES to RDKit molecules
             mols = [Chem.MolFromSmiles(smiles) for smiles in all_smiles]
             # Draw molecules in a grid

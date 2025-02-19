@@ -95,6 +95,20 @@ class Retrosynthesis:
                         prefiltered_set = prefiltered_set.intersection(self.comb_filter_indices_dict[valid_comb])
         return list(prefiltered_set)
 
+    def _get_possible_BBs_for_comb_no_filter(self, comb: CombType) -> BBsType:
+        len_comb = len(comb)
+        if len_comb == 1:
+            return cast(BBsType, self.original_BBs)
+        len_minus_one_valid_combs = self.valid_combinations_dict.get(len_comb - 1, [])
+        BBs: BBsType = set()
+        for valid_comb in len_minus_one_valid_combs:
+            if set(valid_comb).issubset(set(comb)):
+                if not BBs:
+                    BBs = self.comb_bbs_dict[valid_comb]
+                else:
+                    BBs = BBs.intersection(self.comb_bbs_dict[valid_comb])
+        return BBs
+
     def _get_possible_BBs_for_comb(self, comb: CombType) -> BBsType:
         """Get possible building blocks for a given combination of fragments.
 
@@ -111,26 +125,18 @@ class Retrosynthesis:
             A set of SMILES strings representing the building blocks for the
             given combination.
         """
-        len_comb = len(comb)
-        if self.use_filter:
+        if not self.use_filter:
+            return self._get_possible_BBs_for_comb_no_filter(comb)
+        else:
             comb_smiles = self.fragmenter.get_combination_smiles(comb)
             prefiltered_indices = self._get_prefiltered_indices(comb)
             filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(comb_smiles, prefiltered_indices)
             self.comb_filter_indices_dict[comb] = filtered_indices
-            return filtered_BBs
-
-        else:
-            if len_comb == 1:
-                return cast(BBsType, self.original_BBs)
-            len_minus_one_valid_combs = self.valid_combinations_dict.get(len_comb - 1, [])
-            BBs: BBsType = set()
-            for valid_comb in len_minus_one_valid_combs:
-                if set(valid_comb).issubset(set(comb)):
-                    if not BBs:
-                        BBs = self.comb_bbs_dict[valid_comb]
-                    else:
-                        BBs = BBs.intersection(self.comb_bbs_dict[valid_comb])
-            return BBs
+            if len(comb) == 1:
+                return filtered_BBs
+            else:
+                possible_BBs = self._get_possible_BBs_for_comb_no_filter(comb)
+                return possible_BBs.intersection(filtered_BBs)
 
     def _retro_stage(self, stage: int) -> None:
         """Perform retrosynthesis for a single stage.
@@ -146,7 +152,7 @@ class Retrosynthesis:
         self.valid_combinations_dict[stage] = []
         # get fragment comb for stage
         combs = list(self.fragmenter.get_length_n_combinations(stage))
-        logger.info(f"Stage {stage}: {len(combs)} combinations")
+        logger.info(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
         # check invalid comb and filter out effective comb
         effective_combs, invalid_combs = [], []
         for comb in combs:
@@ -155,19 +161,22 @@ class Retrosynthesis:
             else:
                 invalid_combs.append(comb)
         self.invalid_combinations_dict[stage] = invalid_combs
-        logger.info(f"Stage {stage}: {len(effective_combs)} effective combinations")
+        logger.info(f"[Retrosynthesis] Stage {stage}: {len(effective_combs)} effective combinations")
 
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
             fragment_smiles_without_indices = remove_indices_before_dummy(fragment_smiles)
             # get building blocks for comb
             if fragment_smiles_without_indices in self.fragment_bbs_dict:
-                logger.info(f"Fragment {fragment_smiles} ( {fragment_smiles_without_indices} ) already processed")
+                logger.info(
+                    f"[Retrosynthesis] Fragment {fragment_smiles} ( {fragment_smiles_without_indices} ) already processed"
+                )
                 previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles_without_indices]
                 # have to store filtered indices as what's done in `_get_possible_BBs_for_comb`
                 self.comb_filter_indices_dict[comb] = self.comb_filter_indices_dict[previous_comb]
             else:
                 possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
+                logger.info(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
                 comb_matcher = SubstructureMatcher(possible_comb_BBs)
                 valid_BBs = comb_matcher.get_substructure_BBs(fragment_smiles)
                 self.fragment_bbs_dict[fragment_smiles_without_indices] = (comb, valid_BBs)
@@ -178,8 +187,10 @@ class Retrosynthesis:
                 self.comb_bbs_dict[comb] = valid_BBs
             else:
                 self.invalid_combinations_dict[stage].append(comb)
-        logger.info(f"Stage {stage}: {len(self.valid_combinations_dict[stage])} valid combinations")
-        logger.info(f"Stage {stage}: {len(self.invalid_combinations_dict[stage])} invalid combinations")
+        logger.info(f"[Retrosynthesis] Stage {stage}: {len(self.valid_combinations_dict[stage])} valid combinations")
+        logger.info(
+            f"[Retrosynthesis] Stage {stage}: {len(self.invalid_combinations_dict[stage])} invalid combinations"
+        )
 
     def fragment_retrosynthesis(self) -> StageCombDictType:
         """Perform retrosynthesis on the molecule.
