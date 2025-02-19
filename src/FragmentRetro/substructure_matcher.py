@@ -1,5 +1,5 @@
-import concurrent.futures
 import re
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import cpu_count
 from typing import Optional, cast
 
@@ -163,19 +163,19 @@ class SubstructureMatcher:
         logger.info(f"Matching fragment {fragment} to building blocks")
         if self.parallelize:
             logger.info(f"Using {self.num_cores} cores for parallel processing")
-            with concurrent.futures.ProcessPoolExecutor(max_workers=self.num_cores) as executor:
+            with ProcessPoolExecutor(max_workers=self.num_cores) as executor:
                 future_to_bb = {
                     executor.submit(self.is_strict_substructure, fragment, bb, self.useChirality): bb for bb in self.BBs
                 }
 
                 strict_substructure_BBs = set()
-                for future in concurrent.futures.as_completed(future_to_bb):
+                for future in as_completed(future_to_bb):
                     bb = future_to_bb[future]
                     try:
                         if future.result():  # If the result is True, add the building block to the set
                             strict_substructure_BBs.add(bb)
                     except Exception as exc:
-                        logger.error(f"Building block {bb} generated an exception: {exc}")
+                        logger.error(f"[SubstructureMatcher] Building block {bb} generated an exception: {exc}")
         else:
             # Fallback to single-threaded execution
             strict_substructure_BBs = set(
