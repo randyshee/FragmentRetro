@@ -10,9 +10,9 @@
 - [x] Write tests for the parallelization of substructure matcher
 - [x] Write tests for `BRICSFragmenter`.
 - [x] Write tests for `get_combination_smiles`.
+- [ ] Ignore chirality at the neighbor of dummy atoms for `is_strict_substructure` (use both @ and @@).
 - [ ] Confirm that `SubstructureMatcher.addH_to_wildcard_neighbors` is the most efficient way to do `is_strict_substructure`.
 - [ ] Write tests for the `Retrosynthesis` class
-- [ ] Ignore chirality at the neighbor of dummy atoms for `is_strict_substructure`.
 
 ## New Fragmentation Rules
 

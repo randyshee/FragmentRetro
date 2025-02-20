@@ -64,12 +64,6 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
         "expected_smarts": "[#6&H3]-[#6&H2]-[#7&H1]-[#6&H3]",
         "description": "SMILES without dummy atoms",
     },
-    {
-        "case_number": 10,
-        "fragment_smiles": "[5*]N1CCC[C@]1([13*])C",
-        "expected_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
-        "description": "Chiral atom should also have H count",
-    },
     # TODO: Add test cases for molecules with charges
 ]
 

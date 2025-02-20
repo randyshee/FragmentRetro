@@ -68,21 +68,20 @@ class SubstructureMatcher:
         smarts = Chem.MolToSmarts(mol)
         # Replace only specific indices
         for atom in mol.GetAtoms():
-            if atom.GetAtomicNum() == 0:
+            atomic_num = atom.GetAtomicNum()
+            if atomic_num == 0:
                 continue
             num_hydrogens = atom.GetTotalNumHs()
             idx = atom.GetAtomMapNum()
+
+            # remove chirality for atoms that have dummy neighbors
             # dummy_neighbor = SubstructureMatcher.has_dummy_neighbor(atom)
             # if dummy_neighbor:
-            #     # remove chirality for atoms that have dummy neighbors
-            #     smarts = smarts.replace(
-            #         f"[#{atom.GetAtomicNum()}@+:{idx}]",
-            #         f"[#{atom.GetAtomicNum()}:{idx}]",
-            #     )
+            #     smarts = re.sub(rf"\[\#{atomic_num}@{{1,2}}?(H?):{idx}\]",
+            #                     rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]",
+            #                     smarts)
 
-            pattern = rf"\[\#{atom.GetAtomicNum()}([@H0-9]*):{idx}\]"
-            replacement = rf"[#{atom.GetAtomicNum()}\1&H{num_hydrogens}:{idx}]"
-            smarts = re.sub(pattern, replacement, smarts)
+            smarts = re.sub(rf"\[\#{atomic_num}(@*H?):{idx}\]", rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]", smarts)
         # Remove indices
         smarts = re.sub(r":\d+\]", "]", smarts)
         # sub [#0] with *, which is a wildcard for any atom
@@ -121,13 +120,14 @@ class SubstructureMatcher:
             dummy_neighbor = SubstructureMatcher.has_dummy_neighbor(atom)
 
             if dummy_neighbor:
+                atomic_num = atom.GetAtomicNum()
                 num_hydrogens = atom.GetTotalNumHs()
                 idx = atom.GetAtomMapNum()
 
                 # Update SMARTS with explicit hydrogen count
                 smarts_with_indices = re.sub(
-                    rf"\[\#{atom.GetAtomicNum()}([@H0-9]*)&H{num_hydrogens}:{idx}\]",
-                    rf"[#{atom.GetAtomicNum()}\1&H{num_hydrogens},#{atom.GetAtomicNum()}\1&H{num_hydrogens+1}]",
+                    rf"\[\#{atomic_num}(@*H?)&H{num_hydrogens}:{idx}\]",
+                    rf"[#{atomic_num}\1&H{num_hydrogens},#{atomic_num}\1&H{num_hydrogens+1}:{idx}]",
                     smarts_with_indices,
                 )
 
