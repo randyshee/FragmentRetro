@@ -73,14 +73,6 @@ class SubstructureMatcher:
                 continue
             num_hydrogens = atom.GetTotalNumHs()
             idx = atom.GetAtomMapNum()
-
-            # remove chirality for atoms that have dummy neighbors
-            # dummy_neighbor = SubstructureMatcher.has_dummy_neighbor(atom)
-            # if dummy_neighbor:
-            #     smarts = re.sub(rf"\[\#{atomic_num}@{{1,2}}?(H?):{idx}\]",
-            #                     rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]",
-            #                     smarts)
-
             smarts = re.sub(rf"\[\#{atomic_num}(@*H?):{idx}\]", rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]", smarts)
         # Remove indices
         smarts = re.sub(r":\d+\]", "]", smarts)

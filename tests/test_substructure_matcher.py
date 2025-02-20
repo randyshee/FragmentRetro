@@ -64,6 +64,12 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
         "expected_smarts": "[#6&H3]-[#6&H2]-[#7&H1]-[#6&H3]",
         "description": "SMILES without dummy atoms",
     },
+    {
+        "case_number": 10,
+        "fragment_smiles": "C[C@@H]([*])(N)",
+        "expected_smarts": "[#6&H3]-[#6@@H&H1](-*)-[#7&H2]",
+        "description": "Chiraliyy and hydrogen after atomic number",
+    },
     # TODO: Add test cases for molecules with charges
 ]
 
@@ -170,6 +176,13 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
         "case_number": 14,
         "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
         "molecule_smiles": "BrN1CCC[C@@]1([H])C",
+        "expected": True,
+        "description": "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
+    },
+    {
+        "case_number": 15,
+        "fragment_smiles": "C[C@@H]([*])(N)",
+        "molecule_smiles": "CCN",
         "expected": True,
         "description": "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
     },
