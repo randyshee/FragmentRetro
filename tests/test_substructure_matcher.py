@@ -77,13 +77,13 @@ TEST_CASES_ADDH_TO_WILDCARD_NEIGHBORS = [
     {
         "case_number": 1,
         "fragment_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
-        "expected_smarts": "[*]-[#7&H0,#7&H1]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0,#6@&H1]-1(-[*])-[#6&H3]",
+        "expected_smarts": "[*]-[#7&H0,#7&H1]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6&H0,#6&H1]-1(-[*])-[#6&H3]",
         "description": "from fragment smiles [5*]N1CCC[C@]1([13*])C",
     },
     {
         "case_number": 2,
         "fragment_smarts": "[#6&H3]-[#6@@H&H1](-*)-[#7&H2]",
-        "expected_smarts": "[#6&H3]-[#6&H1,#6&H2](-[*])-[#7&H2]",
+        "expected_smarts": "[#6&H3]-[#6H&H1,#6H&H2](-[*])-[#7&H2]",
         "description": "from fragment smiles C[C@@H]([*])(N)",
     },
 ]
@@ -151,9 +151,20 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
     {
         "case_number": 7,
         "fragment_smiles": "C[C@@H]([*])(N)",
-        "molecule_smiles_list": ["CCN"],
-        "expected_list": [True],
-        "descriptions": ["Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true"],
+        "molecule_smiles_list": ["CCN", "C[C@@H](Br)(N)", "C[C@H](Br)(N)"],
+        "expected_list": [True, True, True],
+        "descriptions": [
+            "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
+            "both chirality cases should be true",
+            "both chirality cases should be true",
+        ],
+    },
+    {
+        "case_number": 8,
+        "fragment_smiles": "C[C@@](O)([*])(N)",
+        "molecule_smiles_list": ["C[C@@H](N)O", "C[C@H](N)O"],
+        "expected_list": [True, True],
+        "descriptions": ["both chirality cases should be true", "both chirality cases should be true"],
     },
     # TODO: Add test cases for molecules with charges
 ]
