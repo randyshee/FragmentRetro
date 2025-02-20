@@ -177,6 +177,22 @@ class Fragmenter(ABC):
 
         return all_combinations
 
+    def check_connected_subgraph(self, combination: CombType) -> bool:
+        """Check if the combination is a connected subgraph of the original molecule.
+
+        Args:
+            check_subgraph: Whether to check if the combination is a connected subgraph of the original molecule.
+
+        Returns:
+            True if the combination is a connected subgraph, False otherwise.
+
+        """
+        # check if the combination is a connected subgraph
+        subgraph = self.fragment_graph.subgraph(combination)
+        if not nx.is_connected(subgraph):
+            return False
+        return True
+
     def get_combination_smiles(self, combination: CombType) -> str:
         """
         Get the fragment smiles given one combination.
@@ -193,6 +209,7 @@ class Fragmenter(ABC):
             return cast(str, self.fragment_graph.nodes[combination[0]]["smiles"])
         elif len(combination) == self.num_fragments:
             return self.original_smiles
+
         # remove the bonds that are within the fragment combination
         bonds_to_break: list[BondType] = self.fragmentation_bonds.copy()
         for pair in itertools.combinations(combination, 2):
