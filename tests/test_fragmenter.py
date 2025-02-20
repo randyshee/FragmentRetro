@@ -5,6 +5,8 @@ from itertools import combinations as itertools_combinations
 import pytest
 
 from FragmentRetro.fragmenter import BRICSFragmenter
+from FragmentRetro.substructure_matcher import SubstructureMatcher
+from FragmentRetro.utils.helpers import count_heavy_atoms, replace_dummy_atoms_regex
 
 TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS = [
     {
@@ -58,6 +60,37 @@ def test_get_length_n_combinations(case_number, smiles):
             assert not fragmenter.check_connected_subgraph(
                 bad_comb
             ), f"Case {case_number} Length {length_n}: Bad combination {bad_comb} should not be connected"
+
+
+@pytest.mark.parametrize(
+    "case_number, smiles",
+    [
+        (
+            tc["case_number"],
+            tc["smiles"],
+        )
+        for tc in TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS
+    ],
+)
+def test_get_combination_smiles(case_number, smiles):
+    fragmenter = BRICSFragmenter(smiles)
+    num_fragments = fragmenter.num_fragments
+    for length_n in range(2, num_fragments + 1):
+        large_good_combinations = fragmenter.get_length_n_combinations(length_n)
+        small_good_combinations = fragmenter.get_length_n_combinations(length_n - 1)
+        for large_good_comb in large_good_combinations:
+            large_fragment_smiles = fragmenter.get_combination_smiles(large_good_comb)
+            large_no_dummy = replace_dummy_atoms_regex(large_fragment_smiles)
+            for small_good_comb in small_good_combinations:
+                if set(small_good_comb).issubset(set(large_good_comb)):
+                    small_fragment_smiles = fragmenter.get_combination_smiles(small_good_comb)
+                    small_no_dummy = replace_dummy_atoms_regex(small_fragment_smiles)
+                    assert (
+                        count_heavy_atoms(small_no_dummy) < count_heavy_atoms(large_no_dummy)
+                    ), f"Case {case_number} Length {length_n}: small fragment {small_fragment_smiles} should have fewer heavy atoms than large fragment {large_fragment_smiles}"
+                    assert SubstructureMatcher.is_strict_substructure(
+                        small_fragment_smiles, large_fragment_smiles
+                    ), f"Case {case_number} Length {length_n}: small fragment {small_fragment_smiles} should be a strict substructure of large fragment {large_fragment_smiles}"
 
 
 if __name__ == "__main__":
