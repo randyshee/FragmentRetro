@@ -68,7 +68,7 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
         "case_number": 10,
         "fragment_smiles": "C[C@@H]([*])(N)",
         "expected_smarts": "[#6&H3]-[#6@@H&H1](-*)-[#7&H2]",
-        "description": "Chiraliyy and hydrogen after atomic number",
+        "description": "Chirality and hydrogen after atomic number",
     },
     # TODO: Add test cases for molecules with charges
 ]
