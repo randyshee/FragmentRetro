@@ -73,6 +73,21 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     # TODO: Add test cases for molecules with charges
 ]
 
+TEST_CASES_ADDH_TO_WILDCARD_NEIGHBORS = [
+    {
+        "case_number": 1,
+        "fragment_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
+        "expected_smarts": "[*]-[#7&H0,#7&H1]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0,#6@&H1]-1(-[*])-[#6&H3]",
+        "description": "from fragment smiles [5*]N1CCC[C@]1([13*])C",
+    },
+    {
+        "case_number": 2,
+        "fragment_smarts": "[#6&H3]-[#6@@H&H1](-*)-[#7&H2]",
+        "expected_smarts": "[#6&H3]-[#6@?&H1,#6@?&H2](-[*])-[#7&H2]",
+        "description": "from fragment smiles C[C@@H]([*])(N)",
+    },
+]
+
 TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
     {
         "case_number": 1,
@@ -205,6 +220,23 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
 def test_convert_to_smarts(case_number, fragment_smiles, expected_smarts, description):
     result = SubstructureMatcher.convert_to_smarts(fragment_smiles)
     assert result == expected_smarts, f"Case {case_number} failed: {description}. Fragment SMILES: {fragment_smiles}"
+
+
+@pytest.mark.parametrize(
+    "case_number, fragment_smarts, expected_smarts, description",
+    [
+        (
+            tc["case_number"],
+            tc["fragment_smarts"],
+            tc["expected_smarts"],
+            tc["description"],
+        )
+        for tc in TEST_CASES_ADDH_TO_WILDCARD_NEIGHBORS
+    ],
+)
+def test_addH_to_wildcard_neighbors(case_number, fragment_smarts, expected_smarts, description):
+    result = SubstructureMatcher.addH_to_wildcard_neighbors(fragment_smarts)
+    assert result == expected_smarts, f"Case {case_number} failed: {description}"
 
 
 @pytest.mark.parametrize(
