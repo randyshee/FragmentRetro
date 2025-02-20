@@ -162,18 +162,19 @@ class Fragmenter(ABC):
         """
         all_combinations = set()
 
-        def dfs(path: list[int]) -> None:
+        def dfs(path: list[int], candidates: set[int]) -> None:
             if len(path) == n:
                 sorted_path = cast(CombType, tuple(sorted(path)))
-                all_combinations.add(sorted_path)  # Sort before adding
+                all_combinations.add(sorted_path)
                 return
-            last_node = path[-1]
-            for neighbor in self.fragment_graph.neighbors(last_node):
-                if neighbor not in path:
-                    dfs(path + [neighbor])
+
+            for node in candidates:
+                new_candidates = candidates | set(self.fragment_graph.neighbors(node)) - set(path)
+                if node not in path:
+                    dfs(path + [node], new_candidates)
 
         for node in self.fragment_graph.nodes:
-            dfs([node])
+            dfs([node], set(self.fragment_graph.neighbors(node)))
 
         return all_combinations
 
