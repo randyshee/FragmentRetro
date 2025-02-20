@@ -13,56 +13,62 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
         "case_number": 1,
         "fragment_smiles": "[1*]C([6*])=O",
-        "expected_smarts": "*-[#6H0](-*)=[#8H0]",
+        "expected_smarts": "*-[#6&H0](-*)=[#8&H0]",
         "description": "Without hydrogen and two dummy atoms",
     },
     {
         "case_number": 2,
         "fragment_smiles": "[14*]c1nc2c(C)c(Cl)ccc2[nH]1",
-        "expected_smarts": "*-[#6H0]1:[#7H0]:[#6H0]2:[#6H0](-[#6H3]):[#6H0](-[#17H0]):[#6H1]:[#6H1]:[#6H0]:2:[#7H]:1",
+        "expected_smarts": "*-[#6&H0]1:[#7&H0]:[#6&H0]2:[#6&H0](-[#6&H3]):[#6&H0](-[#17&H0]):[#6&H1]:[#6&H1]:[#6&H0]:2:[#7H&H1]:1",
         "description": "Two rings",
     },
     {
         "case_number": 3,
         "fragment_smiles": "[16*]c1ccc([16*])c([16*])c1",
-        "expected_smarts": "*-[#6H0]1:[#6H1]:[#6H1]:[#6H0](-*):[#6H0](-*):[#6H1]:1",
+        "expected_smarts": "*-[#6&H0]1:[#6&H1]:[#6&H1]:[#6&H0](-*):[#6&H0](-*):[#6&H1]:1",
         "description": "Three dummy atoms and double-digit indices",
     },
     {
         "case_number": 4,
         "fragment_smiles": "[3*]OC",
-        "expected_smarts": "*-[#8H0]-[#6H3]",
+        "expected_smarts": "*-[#8&H0]-[#6&H3]",
         "description": "Three hydrogen atoms on carbon",
     },
     {
         "case_number": 5,
         "fragment_smiles": "[5*]N1CCC[C@]1([13*])C",
-        "expected_smarts": "*-[#7H0]1-[#6H2]-[#6H2]-[#6H2]-[#6@]-1(-*)-[#6H3]",
+        "expected_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
         "description": "Chiral",
     },
     {
         "case_number": 6,
         "fragment_smiles": "[9*]n1nccn1",
-        "expected_smarts": "*-[#7H0]1:[#7H0]:[#6H1]:[#6H1]:[#7H0]:1",
+        "expected_smarts": "*-[#7&H0]1:[#7&H0]:[#6&H1]:[#6&H1]:[#7&H0]:1",
         "description": "Aromatic",
     },
     {
         "case_number": 7,
         "fragment_smiles": "[*]CC",
-        "expected_smarts": "*-[#6H2]-[#6H3]",
+        "expected_smarts": "*-[#6&H2]-[#6&H3]",
         "description": "Dummy atoms without isotopic specification",
     },
     {
         "case_number": 8,
         "fragment_smiles": "*CC",
-        "expected_smarts": "*-[#6H2]-[#6H3]",
+        "expected_smarts": "*-[#6&H2]-[#6&H3]",
         "description": "Dummy atoms without isotopic specification and brackets",
     },
     {
         "case_number": 9,
         "fragment_smiles": "CCNC",
-        "expected_smarts": "[#6H3]-[#6H2]-[#7H1]-[#6H3]",
+        "expected_smarts": "[#6&H3]-[#6&H2]-[#7&H1]-[#6&H3]",
         "description": "SMILES without dummy atoms",
+    },
+    {
+        "case_number": 10,
+        "fragment_smiles": "[5*]N1CCC[C@]1([13*])C",
+        "expected_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
+        "description": "Chiral atom should also have H count",
     },
     # TODO: Add test cases for molecules with charges
 ]
@@ -165,6 +171,13 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
         "molecule_smiles": "BrN1CCC[C@]1(Br)C",
         "expected": False,
         "description": "Chiral case False",
+    },
+    {
+        "case_number": 14,
+        "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
+        "molecule_smiles": "BrN1CCC[C@@]1([H])C",
+        "expected": True,
+        "description": "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
     },
     # TODO: Add test cases for molecules with charges
 ]
