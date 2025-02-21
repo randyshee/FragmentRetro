@@ -4,7 +4,7 @@ from itertools import combinations as itertools_combinations
 
 import pytest
 
-from FragmentRetro.fragmenter import BRICSFragmenter
+from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.substructure_matcher import SubstructureMatcher
 from FragmentRetro.utils.helpers import count_heavy_atoms, replace_dummy_atoms_regex
 
@@ -24,26 +24,22 @@ TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS = [
 ]
 
 
-def test_brics_fragmenter_visualization():
+@pytest.mark.parametrize("fragmenter_class", [BRICSFragmenter, rBRICSFragmenter])
+def test_fragmenter_visualization(fragmenter_class):
     smiles = "CCCOCC"
-    fragmenter = BRICSFragmenter(smiles)
+    fragmenter = fragmenter_class(smiles)
     # Check if the fragment graph is built correctly
     assert fragmenter.fragment_graph.number_of_nodes() > 0, "Fragment graph should have nodes"
     assert fragmenter.fragment_graph.number_of_edges() >= 0, "Fragment graph should have edges or be empty"
 
 
 @pytest.mark.parametrize(
-    "case_number, smiles",
-    [
-        (
-            tc["case_number"],
-            tc["smiles"],
-        )
-        for tc in TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS
-    ],
+    "fragmenter_class, case_number, smiles",
+    [(BRICSFragmenter, tc["case_number"], tc["smiles"]) for tc in TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS]
+    + [(rBRICSFragmenter, tc["case_number"], tc["smiles"]) for tc in TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS],
 )
-def test_get_length_n_combinations(case_number, smiles):
-    fragmenter = BRICSFragmenter(smiles)
+def test_get_length_n_combinations(fragmenter_class, case_number, smiles):
+    fragmenter = fragmenter_class(smiles)
     num_fragments = fragmenter.num_fragments
     for length_n in range(1, num_fragments + 1):
         good_combinations = fragmenter.get_length_n_combinations(length_n)
@@ -63,17 +59,15 @@ def test_get_length_n_combinations(case_number, smiles):
 
 
 @pytest.mark.parametrize(
-    "case_number, smiles",
+    "fragmenter_class, case_number, smiles",
     [
-        (
-            tc["case_number"],
-            tc["smiles"],
-        )
+        (fragmenter_class, tc["case_number"], tc["smiles"])
+        for fragmenter_class in [BRICSFragmenter, rBRICSFragmenter]
         for tc in TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS
     ],
 )
-def test_get_combination_smiles(case_number, smiles):
-    fragmenter = BRICSFragmenter(smiles)
+def test_get_combination_smiles(fragmenter_class, case_number, smiles):
+    fragmenter = fragmenter_class(smiles)
     num_fragments = fragmenter.num_fragments
     for length_n in range(2, num_fragments + 1):
         large_good_combinations = fragmenter.get_length_n_combinations(length_n)
