@@ -76,7 +76,7 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
 TEST_CASES_ADDH_TO_WILDCARD_NEIGHBORS = [
     {
         "case_number": 1,
-        "fragment_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@@]-1(-*)-[#6&H3]",
+        "fragment_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@@&H0]-1(-*)-[#6&H3]",
         "expected_smarts": "[*]-[#7&H0,#7&H1]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6&H0,#6&H1]-1(-[*])-[#6&H3]",
         "description": "from fragment smiles [5*]N1CCC[C@@]1([13*])C",
     },
