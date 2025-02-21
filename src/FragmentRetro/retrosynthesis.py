@@ -147,7 +147,7 @@ class Retrosynthesis:
                 )
                 return possible_BBs.intersection(filtered_BBs)
 
-    def _retro_stage(self, stage: int) -> None:
+    def _retro_stage(self, stage: int) -> int:
         """Perform retrosynthesis for a single stage.
 
         This method performs the retrosynthesis process for a given stage. It
@@ -157,6 +157,8 @@ class Retrosynthesis:
 
         Args:
             stage: The current retrosynthesis stage (an integer).
+        Returns:
+            The number of valid combinations at the given stage.
         """
         self.valid_combinations_dict[stage] = []
         # get fragment comb for stage
@@ -201,10 +203,12 @@ class Retrosynthesis:
                 self.comb_bbs_dict[comb] = valid_BBs
             else:
                 self.invalid_combinations_dict[stage].append(comb)
-        logger.info(f"[Retrosynthesis] Stage {stage}: {len(self.valid_combinations_dict[stage])} valid combinations")
+        stage_valid_count = len(self.valid_combinations_dict[stage])
+        logger.info(f"[Retrosynthesis] Stage {stage}: {stage_valid_count} valid combinations")
         logger.info(
             f"[Retrosynthesis] Stage {stage}: {len(self.invalid_combinations_dict[stage])} invalid combinations"
         )
+        return stage_valid_count
 
     def fragment_retrosynthesis(self) -> StageCombDictType:
         """Perform retrosynthesis on the molecule.
@@ -219,7 +223,10 @@ class Retrosynthesis:
             of valid combinations (tuples of fragment indices).
         """
         for stage in range(1, self.num_fragments + 1):
-            self._retro_stage(stage)
+            stage_valid_count = self._retro_stage(stage)
+            if stage_valid_count == 0:
+                logger.info(f"[Retrosynthesis] Stopped at stage {stage}")
+                break
         if self.use_filter:
             # save memory
             del self.compound_filter
