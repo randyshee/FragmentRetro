@@ -73,7 +73,7 @@ class SubstructureMatcher:
                 continue
             num_hydrogens = atom.GetTotalNumHs()
             idx = atom.GetAtomMapNum()
-            smarts = re.sub(rf"\[\#{atomic_num}(@*H?):{idx}\]", rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]", smarts)
+            smarts = re.sub(rf"\[\#{atomic_num}:{idx}\]", rf"[#{atomic_num}&H{num_hydrogens}:{idx}]", smarts)
         # Remove indices
         smarts = re.sub(r":\d+\]", "]", smarts)
         # sub [#0] with *, which is a wildcard for any atom
@@ -116,12 +116,14 @@ class SubstructureMatcher:
                 num_hydrogens = atom.GetTotalNumHs()
                 idx = atom.GetAtomMapNum()
 
+                logger.debug("smarts_with_indices: %s", smarts_with_indices)
                 # Update SMARTS with explicit hydrogen count
                 smarts_with_indices = re.sub(
                     rf"\[\#{atomic_num}(@*H?)&H{num_hydrogens}:{idx}\]",
                     rf"[#{atomic_num}\1&H{num_hydrogens},#{atomic_num}\1&H{num_hydrogens+1}:{idx}]",
                     smarts_with_indices,
                 )
+                logger.debug("smarts_with_indices: %s", smarts_with_indices)
 
         # Remove atom map indices
         adjusted_smarts = re.sub(r":\d+\]", "]", smarts_with_indices)

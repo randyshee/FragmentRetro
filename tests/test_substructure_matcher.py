@@ -19,7 +19,7 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
         "case_number": 2,
         "fragment_smiles": "[14*]c1nc2c(C)c(Cl)ccc2[nH]1",
-        "expected_smarts": "*-[#6&H0]1:[#7&H0]:[#6&H0]2:[#6&H0](-[#6&H3]):[#6&H0](-[#17&H0]):[#6&H1]:[#6&H1]:[#6&H0]:2:[#7H&H1]:1",
+        "expected_smarts": "*-[#6&H0]1:[#7&H0]:[#6&H0]2:[#6&H0](-[#6&H3]):[#6&H0](-[#17&H0]):[#6&H1]:[#6&H1]:[#6&H0]:2:[#7H]:1",
         "description": "Two rings",
     },
     {
@@ -37,7 +37,7 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
         "case_number": 5,
         "fragment_smiles": "[5*]N1CCC[C@]1([13*])C",
-        "expected_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@&H0]-1(-*)-[#6&H3]",
+        "expected_smarts": "*-[#7&H0]1-[#6&H2]-[#6&H2]-[#6&H2]-[#6@]-1(-*)-[#6&H3]",
         "description": "Chiral",
     },
     {
@@ -67,7 +67,7 @@ TEST_CASES_FOR_CONVERT_TO_SMARTS = [
     {
         "case_number": 10,
         "fragment_smiles": "C[C@@H]([*])(N)",
-        "expected_smarts": "[#6&H3]-[#6@@H&H1](-*)-[#7&H2]",
+        "expected_smarts": "[#6&H3]-[#6@@H](-*)-[#7&H2]",
         "description": "Chirality and hydrogen after atomic number",
     },
     # TODO: Add test cases for molecules with charges
@@ -139,32 +139,43 @@ TEST_CASES_FOR_IS_STRICT_SUBSTRUCTURE = [
     },
     {
         "case_number": 6,
-        "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
-        "molecule_smiles_list": ["BrN1CCC[C@@]1(Br)C", "BrN1CCC[C@]1(Br)C", "BrN1CCC[C@@]1([H])C"],
-        "expected_list": [True, False, True],
+        "fragment_smiles": "[5*]N1CCC[C@@]1(Br)C",
+        "molecule_smiles_list": ["BrN1CCC[C@@]1(Br)C", "BrN1CCC[C@]1(Br)C"],
+        "expected_list": [True, False],
         "descriptions": [
             "Chiral case True",
             "Chiral case False",
-            "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
         ],
     },
     {
         "case_number": 7,
-        "fragment_smiles": "C[C@@H]([*])(N)",
-        "molecule_smiles_list": ["CCN", "C[C@@H](Br)(N)", "C[C@H](Br)(N)"],
-        "expected_list": [True, True, True],
+        "fragment_smiles": "[5*]N1CCC[C@@]1([13*])C",
+        "molecule_smiles_list": [
+            "BrN1CCC[C@@]1(Br)C",
+            "BrN1CCC[C@]1(Br)C",
+            "BrN1CCC[C@@]1([H])C",
+            "BrN1CCC[C@]1([H])C",
+        ],
+        "expected_list": [True, True, True, True],
         "descriptions": [
+            "both chirality cases should be true",
+            "both chirality cases should be true",
             "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
-            "both chirality cases should be true",
-            "both chirality cases should be true",
+            "both chirality cases should be true for hydrogen as the dummy atom",
         ],
     },
     {
         "case_number": 8,
-        "fragment_smiles": "C[C@@](O)([*])(N)",
-        "molecule_smiles_list": ["C[C@@H](N)O", "C[C@H](N)O"],
-        "expected_list": [True, True],
-        "descriptions": ["both chirality cases should be true", "both chirality cases should be true"],
+        "fragment_smiles": "C[C@@H]([*])(N)",
+        "molecule_smiles_list": ["CCN", "C[C@@H](Br)(N)", "C[C@H](Br)(N)", "C[C@@H](N)O", "C[C@H](N)O"],
+        "expected_list": [True, True, True, True, True],
+        "descriptions": [
+            "Hydrogen atom being the dummy atom at the neighbor of a chiral atom should be true",
+            "both chirality cases should be true",
+            "both chirality cases should be true",
+            "both chirality cases should be true for hydrogen as the dummy atom",
+            "both chirality cases should be true for hydrogen as the dummy atom",
+        ],
     },
     # TODO: Add test cases for molecules with charges
 ]
