@@ -162,20 +162,37 @@ class Fragmenter(ABC):
         """
         all_combinations = set()
 
-        def dfs(path: list[int]) -> None:
+        def dfs(path: list[int], candidates: set[int]) -> None:
             if len(path) == n:
                 sorted_path = cast(CombType, tuple(sorted(path)))
-                all_combinations.add(sorted_path)  # Sort before adding
+                all_combinations.add(sorted_path)
                 return
-            last_node = path[-1]
-            for neighbor in self.fragment_graph.neighbors(last_node):
-                if neighbor not in path:
-                    dfs(path + [neighbor])
+
+            for node in candidates:
+                new_candidates = candidates | set(self.fragment_graph.neighbors(node)) - set(path)
+                if node not in path:
+                    dfs(path + [node], new_candidates)
 
         for node in self.fragment_graph.nodes:
-            dfs([node])
+            dfs([node], set(self.fragment_graph.neighbors(node)))
 
         return all_combinations
+
+    def check_connected_subgraph(self, combination: CombType) -> bool:
+        """Check if the combination is a connected subgraph of the original molecule.
+
+        Args:
+            check_subgraph: Whether to check if the combination is a connected subgraph of the original molecule.
+
+        Returns:
+            True if the combination is a connected subgraph, False otherwise.
+
+        """
+        # check if the combination is a connected subgraph
+        subgraph = self.fragment_graph.subgraph(combination)
+        if not nx.is_connected(subgraph):
+            return False
+        return True
 
     def get_combination_smiles(self, combination: CombType) -> str:
         """
@@ -193,6 +210,7 @@ class Fragmenter(ABC):
             return cast(str, self.fragment_graph.nodes[combination[0]]["smiles"])
         elif len(combination) == self.num_fragments:
             return self.original_smiles
+
         # remove the bonds that are within the fragment combination
         bonds_to_break: list[BondType] = self.fragmentation_bonds.copy()
         for pair in itertools.combinations(combination, 2):

@@ -4,6 +4,7 @@ from multiprocessing import cpu_count
 from typing import Optional, cast
 
 from rdkit import Chem
+from rdkit.Chem.rdchem import Atom
 
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import BBsType
@@ -37,6 +38,15 @@ class SubstructureMatcher:
         self.core_factor = core_factor
 
     @staticmethod
+    def has_dummy_neighbor(atom: Atom) -> bool:
+        dummy_neighbor = False
+        for neighbor in atom.GetNeighbors():
+            if neighbor.GetSymbol() == "*":  # Neighbor is wildcard
+                dummy_neighbor = True
+                break
+        return dummy_neighbor
+
+    @staticmethod
     def convert_to_smarts(fragment_smiles: str) -> str:
         """
         Convert a fragment SMILES string into a SMARTS string with hydrogen counts
@@ -58,14 +68,15 @@ class SubstructureMatcher:
         smarts = Chem.MolToSmarts(mol)
         # Replace only specific indices
         for atom in mol.GetAtoms():
-            if atom.GetAtomicNum() == 0:
+            atomic_num = atom.GetAtomicNum()
+            if atomic_num == 0:
                 continue
             num_hydrogens = atom.GetTotalNumHs()
             idx = atom.GetAtomMapNum()
-            smarts = smarts.replace(
-                f"[#{atom.GetAtomicNum()}:{idx}]",
-                f"[#{atom.GetAtomicNum()}H{num_hydrogens}:{idx}]",
-            )
+            if num_hydrogens == 0:
+                smarts = re.sub(rf"\[\#{atomic_num}(@*):{idx}\]", rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]", smarts)
+            else:
+                smarts = re.sub(rf"\[\#{atomic_num}:{idx}\]", rf"[#{atomic_num}&H{num_hydrogens}:{idx}]", smarts)
         # Remove indices
         smarts = re.sub(r":\d+\]", "]", smarts)
         # sub [#0] with *, which is a wildcard for any atom
@@ -101,22 +112,23 @@ class SubstructureMatcher:
         Chem.SanitizeMol(fragment_mol)
 
         for atom in fragment_mol.GetAtoms():
-            addH = False
-            for neighbor in atom.GetNeighbors():
-                if neighbor.GetSymbol() == "*":  # Neighbor is also wildcard
-                    addH = True
-                    break
+            dummy_neighbor = SubstructureMatcher.has_dummy_neighbor(atom)
 
-            if addH:
+            if dummy_neighbor:
+                atomic_num = atom.GetAtomicNum()
                 num_hydrogens = atom.GetTotalNumHs()
                 idx = atom.GetAtomMapNum()
 
+                logger.debug("smarts_with_indices: %s", smarts_with_indices)
+                logger.debug("updating atom idx: %s", idx)
                 # Update SMARTS with explicit hydrogen count
-                smarts_with_indices = smarts_with_indices.replace(
-                    # The '&' here is from `Chem.MolToSmarts(fragment_mol)`
-                    f"[#{atom.GetAtomicNum()}&H{num_hydrogens}:{idx}]",
-                    f"[#{atom.GetAtomicNum()}&H{num_hydrogens},#{atom.GetAtomicNum()}&H{num_hydrogens+1}]",
+                # remove chirality information (in re group \1) for atoms with dummy neighbors
+                smarts_with_indices = re.sub(
+                    rf"\[\#{atomic_num}(@*)&H{num_hydrogens}:{idx}\]",
+                    rf"[#{atomic_num}&H{num_hydrogens},#{atomic_num}&H{num_hydrogens+1}:{idx}]",
+                    smarts_with_indices,
                 )
+                logger.debug("smarts_with_indices: %s", smarts_with_indices)
 
         # Remove atom map indices
         adjusted_smarts = re.sub(r":\d+\]", "]", smarts_with_indices)
