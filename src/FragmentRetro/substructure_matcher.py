@@ -73,7 +73,10 @@ class SubstructureMatcher:
                 continue
             num_hydrogens = atom.GetTotalNumHs()
             idx = atom.GetAtomMapNum()
-            smarts = re.sub(rf"\[\#{atomic_num}:{idx}\]", rf"[#{atomic_num}&H{num_hydrogens}:{idx}]", smarts)
+            if num_hydrogens == 0:
+                smarts = re.sub(rf"\[\#{atomic_num}(@*):{idx}\]", rf"[#{atomic_num}\1&H{num_hydrogens}:{idx}]", smarts)
+            else:
+                smarts = re.sub(rf"\[\#{atomic_num}:{idx}\]", rf"[#{atomic_num}&H{num_hydrogens}:{idx}]", smarts)
         # Remove indices
         smarts = re.sub(r":\d+\]", "]", smarts)
         # sub [#0] with *, which is a wildcard for any atom
