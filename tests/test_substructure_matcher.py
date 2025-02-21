@@ -83,7 +83,7 @@ TEST_CASES_ADDH_TO_WILDCARD_NEIGHBORS = [
     {
         "case_number": 2,
         "fragment_smarts": "[#6&H3]-[#6@@H](-*)-[#7&H2]",
-        "expected_smarts": "[#6&H3]-[#6H&H1,#6H&H2](-[*])-[#7&H2]",
+        "expected_smarts": "[#6&H3]-[#6&H1,#6&H2](-[*])-[#7&H2]",
         "description": "from fragment smiles C[C@@H]([*])(N)",
     },
 ]
