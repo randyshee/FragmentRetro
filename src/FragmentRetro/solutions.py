@@ -1,4 +1,5 @@
 from itertools import chain
+from typing import Optional
 
 from PIL import Image
 from rdkit import Chem
@@ -15,6 +16,7 @@ class RetrosynthesisSolution:
         self.fragmenter = retrosynthesis.fragmenter
         self.solutions: list[SolutionType] = []
         self.valid_combinations = list(chain.from_iterable(retrosynthesis.valid_combinations_dict.values()))
+        self.valid_combinations = sorted(self.valid_combinations, key=len, reverse=True)
         self.num_fragments = retrosynthesis.fragmenter.num_fragments
 
     @staticmethod
@@ -53,7 +55,9 @@ class RetrosynthesisSolution:
                 )
 
     @staticmethod
-    def get_solutions(valid_combinations: list[CombType], num_fragments: int) -> list[SolutionType]:
+    def get_solutions(
+        valid_combinations: list[CombType], num_fragments: int, solution_cap: Optional[int] = None
+    ) -> list[SolutionType]:
         """
         Generates all possible retrosynthesis solutions from a list of valid fragment combinations.
 
@@ -64,6 +68,7 @@ class RetrosynthesisSolution:
             valid_combinations: A list of valid fragment combinations, where each combination
                 is a tuple of fragment indices.
             num_fragments: The total number of fragments in the retrosynthesis.
+            solution_cap: An optional integer specifying the maximum number of solutions to return.
 
         Returns:
             A list of retrosynthesis solutions. Each solution is a list of fragment lists.
@@ -85,6 +90,9 @@ class RetrosynthesisSolution:
             RetrosynthesisSolution._find_complementary_combinations(
                 solution, remaining_fragments, i + 1, valid_combinations, all_solutions
             )
+            if solution_cap and len(all_solutions) >= solution_cap:
+                logger.info(f"[RetrosynthesisSolution] Solution count capped at {solution_cap}")
+                return all_solutions[:solution_cap]
 
         return all_solutions
 
