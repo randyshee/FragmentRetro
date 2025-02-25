@@ -37,6 +37,7 @@ class Retrosynthesis:
         self.parallelize = parallelize
         self.num_cores = num_cores
         self.core_factor = core_factor
+        self.last_stage_combs: list[CombType]
 
         if original_BBs is not None and mol_properties_path is not None:
             logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
@@ -162,7 +163,13 @@ class Retrosynthesis:
         """
         self.valid_combinations_dict[stage] = []
         # get fragment comb for stage
-        combs = list(self.fragmenter.get_length_n_combinations(stage))
+        if stage == 1:
+            combs = list(self.fragmenter.get_length_n_combinations(stage))
+            self.last_stage_combs = combs
+        else:
+            combs = list(self.fragmenter.get_length_n_combinations_from_last_stage(self.last_stage_combs))
+            self.last_stage_combs = combs
+
         logger.info(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
         # check invalid comb and filter out effective comb
         effective_combs, invalid_combs = [], []
