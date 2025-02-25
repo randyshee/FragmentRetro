@@ -169,8 +169,8 @@ class Fragmenter(ABC):
                 return
 
             for node in candidates:
-                new_candidates = candidates | set(self.fragment_graph.neighbors(node)) - set(path)
                 if node not in path:
+                    new_candidates = candidates | set(self.fragment_graph.neighbors(node)) - set(path)
                     dfs(path + [node], new_candidates)
 
         for node in self.fragment_graph.nodes:
