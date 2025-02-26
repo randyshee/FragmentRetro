@@ -96,9 +96,9 @@ class RetrosynthesisSolution:
 
         return all_solutions
 
-    def fill_solutions(self) -> None:
+    def fill_solutions(self, solution_cap: Optional[int] = None) -> None:
         """Fill the solutions list with all possible solutions."""
-        self.solutions = self.get_solutions(self.valid_combinations, self.num_fragments)
+        self.solutions = self.get_solutions(self.valid_combinations, self.num_fragments, solution_cap)
 
     def get_solution_smiles(self, solution: SolutionType) -> list[str]:
         """
