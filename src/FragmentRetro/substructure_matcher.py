@@ -193,6 +193,8 @@ class SubstructureMatcher:
                     except Exception as exc:
                         logger.error(f"[SubstructureMatcher] Building block {bb} generated an exception: {exc}")
                         raise Exception("Parallel processing failed")
+                logger.info("[SubstructureMatcher] Shutting down executor")
+                executor.shutdown(wait=True)
         else:
             # Fallback to single-threaded execution
             strict_substructure_BBs = set(
