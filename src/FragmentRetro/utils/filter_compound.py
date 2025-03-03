@@ -106,6 +106,7 @@ class CompoundFilter:
         self.num_rings_list = [props["num_rings"] for props in mol_properties_list]
         self.pfp_len_list = [len(props["pfp"]) for props in mol_properties_list]
         self.pfp_list = [props["pfp"] for props in mol_properties_list]
+        logger.info("[CompoundFilter] Finished loading mol properties")
 
     def _create_numpy_arrays(self) -> None:
         """Creates NumPy arrays for faster filtering."""
