@@ -1,6 +1,5 @@
 import re
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from multiprocessing import cpu_count
+from multiprocessing import Pool, cpu_count
 from typing import Optional, cast
 
 from rdkit import Chem
@@ -34,7 +33,7 @@ class SubstructureMatcher:
         self.useChirality = useChirality
         self.parallelize = parallelize
         # Use all available cores if not specified
-        self.num_cores = num_cores if num_cores is not None else cpu_count()
+        self.num_cores = min(num_cores if num_cores is not None else cpu_count(), cpu_count())
         self.core_factor = core_factor
 
     @staticmethod
@@ -179,22 +178,12 @@ class SubstructureMatcher:
         logger.info(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
         if self.parallelize and len(self.BBs) >= self.num_cores * self.core_factor:
             logger.info(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
-            with ProcessPoolExecutor(max_workers=self.num_cores) as executor:
-                future_to_bb = {
-                    executor.submit(self.is_strict_substructure, fragment, bb, self.useChirality): bb for bb in self.BBs
-                }
+            with Pool(processes=self.num_cores) as pool:
+                results = pool.starmap(
+                    self.is_strict_substructure, [(fragment, bb, self.useChirality) for bb in self.BBs]
+                )
+                strict_substructure_BBs = set(bb for bb, result in zip(self.BBs, results) if result)
 
-                strict_substructure_BBs = set()
-                for future in as_completed(future_to_bb):
-                    bb = future_to_bb[future]
-                    try:
-                        if future.result():  # If the result is True, add the building block to the set
-                            strict_substructure_BBs.add(bb)
-                    except Exception as exc:
-                        logger.error(f"[SubstructureMatcher] Building block {bb} generated an exception: {exc}")
-                        raise Exception("Parallel processing failed")
-                logger.info("[SubstructureMatcher] Shutting down executor")
-                executor.shutdown(wait=True)
         else:
             # Fallback to single-threaded execution
             strict_substructure_BBs = set(
