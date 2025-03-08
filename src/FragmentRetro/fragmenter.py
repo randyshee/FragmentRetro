@@ -40,21 +40,3 @@ class rBRICSFragmenter(Fragmenter):
 
     def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
         return BreakrBRICSBonds(mol, bonds)  # type: ignore[no-untyped-call]
-
-
-class rBRICSAromaticFragmenter(Fragmenter):
-    def __init__(self, smiles: str) -> None:
-        """
-        Initialize with SMILES string. Aromatic bonds can be broken.
-
-        Args:
-            smiles: SMILES string of molecule to fragment
-            clearAromaticFlags: If true, aromatic bonds can be broken
-        """
-        super().__init__(smiles, clearAromaticFlags=True)
-
-    def _find_fragmentation_bonds(self, mol: Mol) -> list[BondType]:
-        return list(FindrBRICSBonds(mol))  # type: ignore[no-untyped-call]
-
-    def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
-        return BreakrBRICSBonds(mol, bonds)  # type: ignore[no-untyped-call]
