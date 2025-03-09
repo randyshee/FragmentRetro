@@ -27,6 +27,7 @@ class Retrosynthesis:
         parallelize: bool = False,
         num_cores: Optional[int] = None,
         core_factor: int = 10,
+        compound_filter: Optional[CompoundFilter] = None,
     ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
@@ -41,12 +42,16 @@ class Retrosynthesis:
 
         if original_BBs is not None and mol_properties_path is not None:
             logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
-        elif original_BBs is None and mol_properties_path is None:
-            logger.critical("Either original_BBs or mol_properties_path must be provided.")
+        elif mol_properties_path is not None and compound_filter is not None:
+            logger.warn("Both mol_properties_path and compound_filter are provided. " "Will be using compound_filter.")
+        elif original_BBs is None and mol_properties_path is None and compound_filter is None:
+            logger.critical("Either original_BBs, mol_properties_path, or compound_filter must be provided.")
         if mol_properties_path is not None:
             self.use_filter = True
             self.fpSize = fpSize
-            self.compound_filter = CompoundFilter(mol_properties_path, fpSize=self.fpSize)
+            self.compound_filter = compound_filter
+            if self.compound_filter is None:
+                self.compound_filter = CompoundFilter(mol_properties_path, fpSize=self.fpSize)
             self.comb_filter_indices_dict: CombFilterIndicesDictType = {}
         else:
             self.use_filter = False
@@ -134,7 +139,7 @@ class Retrosynthesis:
         """
         if not self.use_filter:
             return self._get_possible_BBs_for_comb_no_filter(comb)
-        else:
+        elif self.compound_filter is not None:
             comb_smiles = self.fragmenter.get_combination_smiles(comb)
             prefiltered_indices = self._get_prefiltered_indices(comb)
             filtered_indices, filtered_BBs = self.compound_filter.get_filtered_BBs(comb_smiles, prefiltered_indices)
@@ -147,6 +152,9 @@ class Retrosynthesis:
                     f"[Retrosynthesis] Number of possible BBs (when no filter) for {comb_smiles}: {len(possible_BBs)}"
                 )
                 return possible_BBs.intersection(filtered_BBs)
+        else:
+            logger.error("[Retrosynthesis] Using filtering but compound filter is missing")
+            raise ValueError("[Retrosynthesis] Using filtering but compound filter is missing d")
 
     def _retro_stage(self, stage: int) -> tuple[int, int]:
         """Perform retrosynthesis for a single stage.
