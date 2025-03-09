@@ -95,17 +95,18 @@ class CompoundFilter:
 
     def _load_mol_properties(self) -> None:
         """Loads molecular properties from the JSON file."""
+
+        logger.info("[CompoundFilter] Loading mol properties")
         with open(self.mol_properties_path, "r") as f:
             mol_properties_list = json.load(f)
 
         self.len_BBs = len(mol_properties_list)
-
-        for mol_props in mol_properties_list:
-            self.cano_smiles_list.append(mol_props["cano_smiles"])
-            self.num_heavy_atoms_list.append(mol_props["num_heavy_atoms"])
-            self.num_rings_list.append(mol_props["num_rings"])
-            self.pfp_len_list.append(len(mol_props["pfp"]))
-            self.pfp_list.append(mol_props["pfp"])
+        self.cano_smiles_list = [props["cano_smiles"] for props in mol_properties_list]
+        self.num_heavy_atoms_list = [props["num_heavy_atoms"] for props in mol_properties_list]
+        self.num_rings_list = [props["num_rings"] for props in mol_properties_list]
+        self.pfp_len_list = [len(props["pfp"]) for props in mol_properties_list]
+        self.pfp_list = [props["pfp"] for props in mol_properties_list]
+        logger.info("[CompoundFilter] Finished loading mol properties")
 
     def _create_numpy_arrays(self) -> None:
         """Creates NumPy arrays for faster filtering."""
