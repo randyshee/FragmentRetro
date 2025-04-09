@@ -1,4 +1,4 @@
-site_name: Fragmentation and Retrosynthesis
+site_name: FragmentRetro Docs
 theme:
   name: material
   features:

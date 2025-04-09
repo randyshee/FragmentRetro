@@ -3,7 +3,7 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from FragmentRetro.fragmenter import BRICSFragmenter
+from FragmentRetro.fragmenter import BRICSFragmenter  # or use rBRICSFragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
 from FragmentRetro.utils.logging_config import logger
@@ -18,14 +18,19 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 with open(PAROUTES_PATH / "n1-stock.txt", "r") as f:
     n1_stock = [line.strip() for line in f.readlines()]
 
-with open(PAROUTES_PATH / "n1_shuffled_seed42_n500.pkl", "rb") as f:
-    n1_data = pickle.load(f)
+with open(PAROUTES_PATH / "n1-targets.txt", "rb") as f:
+    n1_targets = pickle.load(f)
 
-n1_products, n1_routes = n1_data[0], n1_data[2]
+# with open(PAROUTES_PATH / "n5-stock.txt", "r") as f:
+#     n5_stock = [line.strip() for line in f.readlines()]
 
-targets = n1_products
+# with open(PAROUTES_PATH / "n5-targets.txt", "rb") as f:
+#     n5_targets = pickle.load(f)
+
+
+targets = n1_targets
 stock = n1_stock
-SAVED_PATH = EVAL_PATH / "eval_n1_500_seed42_precompute.pkl"
+SAVED_PATH = EVAL_PATH / "save_path.pkl"
 
 original_BBs = None
 JSON_PRECOMPUTE_PATH = PRECOMPUTE_PATH / "n1_stock_properties.json"
