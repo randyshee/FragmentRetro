@@ -9,6 +9,7 @@ from rdkit.Chem import Draw  # Add RDKit Draw
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
+from FragmentRetro.utils.helpers import sort_by_heavy_atoms
 from FragmentRetro.utils.logging_config import logger
 
 # --- Widgets ---
@@ -369,7 +370,7 @@ def on_fragment_comb_select(change):
         else:
             # Ensure smiles_list is a list for indexing
             smiles_data = retro_tool.comb_bbs_dict.get(selected_comb, set())  # Default to empty set
-            smiles_list = list(smiles_data)  # Convert set (or other iterable) to list
+            smiles_list = sort_by_heavy_atoms(list(smiles_data))  # Convert set (or other iterable) to list
             app_state["selected_fragment_comb"] = selected_comb
             app_state["current_smiles_list"] = smiles_list
             app_state["current_smiles_index"] = 0  # Reset index on new selection
