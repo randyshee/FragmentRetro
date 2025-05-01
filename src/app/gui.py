@@ -158,6 +158,15 @@ next_smiles_button = widgets.Button(
     description="Next", icon="arrow-right", disabled=True, layout=widgets.Layout(width="100px")
 )
 
+# NEW: Button to sort SMILES
+sort_smiles_button = widgets.Button(
+    description="Sort by Heavy Atoms",
+    icon="sort",
+    tooltip="Click to sort the displayed SMILES list by heavy atom count",
+    disabled=True,
+    layout=widgets.Layout(width="180px"),
+)
+
 # --- State ---
 # Instantiate the state management class
 state = AppState()
@@ -382,14 +391,18 @@ def on_fragment_comb_select(change: dict[str, str | CombType]) -> None:
         if selected_comb is None or retro_tool is None or not hasattr(retro_tool, "comb_bbs_dict"):
             # Use state reset method
             state.reset_smiles_viewer_state()
+            sort_smiles_button.disabled = True  # Disable sort button if no data
         else:
             # Ensure smiles_list is a list for indexing
             smiles_data: set[str] = retro_tool.comb_bbs_dict.get(selected_comb, set())  # Default to empty set
-            smiles_list: list[str] = sort_by_heavy_atoms(list(smiles_data))  # Convert set to list
+            # Load unsorted list initially
+            smiles_list: list[str] = list(smiles_data)
             # Update state attributes
             state.selected_fragment_comb = selected_comb
             state.current_smiles_list = smiles_list
             state.current_smiles_index = 0  # Reset index on new selection
+            state.is_smiles_sorted = False  # Mark as unsorted
+            sort_smiles_button.disabled = not smiles_list  # Enable only if there are SMILES
 
         update_smiles_display()  # Update the display
 
@@ -411,10 +424,23 @@ def on_next_smiles_click(b: widgets.Button) -> None:
         update_smiles_display()
 
 
+# NEW: Handler for the sort SMILES button
+def on_sort_smiles_click(b: widgets.Button) -> None:
+    """Handles clicks on the 'Sort by Heavy Atoms' button."""
+    if not state.is_smiles_sorted and state.current_smiles_list:
+        # Sort the list in place (or create new if state management prefers)
+        state.current_smiles_list = sort_by_heavy_atoms(state.current_smiles_list)
+        state.is_smiles_sorted = True
+        state.current_smiles_index = 0  # Reset index after sorting
+        update_smiles_display()
+        sort_smiles_button.disabled = True  # Disable after sorting
+
+
 # Attach handlers
 fragment_comb_dropdown.observe(on_fragment_comb_select, names="value")
 prev_smiles_button.on_click(on_prev_smiles_click)
 next_smiles_button.on_click(on_next_smiles_click)
+sort_smiles_button.on_click(on_sort_smiles_click)  # Attach handler for sort button
 
 
 # --- Solution Display Logic ---
@@ -450,6 +476,7 @@ def display_solutions_on_click(b: widgets.Button) -> None:
     prev_smiles_button.disabled = True
     next_smiles_button.disabled = True
     smiles_pagination_label.value = "0 of 0"
+    sort_smiles_button.disabled = True  # Reset sort button state
     with smiles_display_area:
         clear_output()  # type: ignore
         # Use logger instead of print
@@ -642,6 +669,7 @@ smiles_viewer_section = widgets.VBox(
         fragment_comb_dropdown,
         smiles_display_area,
         smiles_pagination_controls,
+        sort_smiles_button,  # Add sort button to layout
     ]
 )
 
@@ -729,3 +757,4 @@ def on_solution_select(change: dict[str, str | int]) -> None:
             update_fragment_comb_dropdown(None)
             # Reset SMILES viewer state as well
             state.reset_smiles_viewer_state()
+            sort_smiles_button.disabled = True  # Disable sort button

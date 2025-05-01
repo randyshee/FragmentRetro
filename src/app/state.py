@@ -18,6 +18,7 @@ class AppState:
         self.displayable_solutions: list[
             SolutionType
         ] = []  # Type hint might need refinement based on solution structure
+        self.is_smiles_sorted: bool = False  # NEW: Track if the current SMILES list is sorted
 
     def reset_run_state(self) -> None:
         """Resets state related to a specific retrosynthesis run."""
@@ -28,6 +29,7 @@ class AppState:
         self.current_smiles_list = []
         self.current_smiles_index = 0
         self.displayable_solutions = []
+        self.is_smiles_sorted = False  # Reset sorting state
 
     def reset_display_state(self) -> None:
         """Resets state related to the solution display area."""
@@ -37,9 +39,11 @@ class AppState:
         self.selected_fragment_comb = None
         self.current_smiles_list = []
         self.current_smiles_index = 0
+        self.is_smiles_sorted = False  # Reset sorting state
 
     def reset_smiles_viewer_state(self) -> None:
         """Resets state specific to the SMILES viewer section."""
         self.selected_fragment_comb = None
         self.current_smiles_list = []
         self.current_smiles_index = 0
+        self.is_smiles_sorted = False  # Reset sorting state
