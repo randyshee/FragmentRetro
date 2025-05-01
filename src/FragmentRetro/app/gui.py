@@ -106,11 +106,40 @@ image_display_area = widgets.Output()
 # Output area for display messages (errors, status)
 solution_output_area = widgets.Output()
 
+# --- SMILES Viewer Widgets ---
+fragment_comb_dropdown = widgets.Dropdown(
+    options=[],
+    description="Select Fragment Comb:",
+    style={"description_width": "initial"},
+    value=None,
+    disabled=True,
+    layout=widgets.Layout(width="auto"),
+)
+
+smiles_display_area = widgets.HTML(
+    value="<p>Select a fragment combination above.</p>",
+    layout=widgets.Layout(min_height="40px"),  # Ensure space for text
+)
+
+smiles_pagination_label = widgets.Label(value="0 of 0")
+
+prev_smiles_button = widgets.Button(
+    description="Previous", icon="arrow-left", disabled=True, layout=widgets.Layout(width="100px")
+)
+
+next_smiles_button = widgets.Button(
+    description="Next", icon="arrow-right", disabled=True, layout=widgets.Layout(width="100px")
+)
+
 # --- State ---
 # Simple dictionary to hold application state like the solution object
 app_state = {
     "retro_solution": None,
     "valid_images_cache": [],  # Cache images for the observer
+    "retro_tool": None,  # Store the retro tool instance
+    "selected_fragment_comb": None,
+    "current_smiles_list": [],
+    "current_smiles_index": 0,
 }
 
 # --- Logic ---
@@ -126,6 +155,18 @@ def run_retrosynthesis_on_click(b):
         clear_output()
     with solution_output_area:
         clear_output()
+    # Reset SMILES viewer state
+    fragment_comb_dropdown.options = []
+    fragment_comb_dropdown.value = None
+    fragment_comb_dropdown.disabled = True
+    prev_smiles_button.disabled = True
+    next_smiles_button.disabled = True
+    smiles_pagination_label.value = "0 of 0"
+    smiles_display_area.value = "<p>Run retrosynthesis to populate fragment combinations.</p>"
+    app_state["retro_tool"] = None
+    app_state["selected_fragment_comb"] = None
+    app_state["current_smiles_list"] = []
+    app_state["current_smiles_index"] = 0
 
     with output_area:
         clear_output(wait=True)  # Clear previous run output
@@ -201,9 +242,21 @@ def run_retrosynthesis_on_click(b):
             logger.info(f"Found {len(retro_solution.solutions)} solution(s).")
             print(f"Found {len(retro_solution.solutions)} solution(s).")
 
-            # Store the solution object in the state
+            # Store the solution object and retro_tool in the state
             app_state["retro_solution"] = retro_solution
-            print("Retrosynthesis complete. Ready to display solutions.")
+            app_state["retro_tool"] = retro_tool  # Store the tool
+            print("Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
+
+            # Populate fragment combination dropdown - REMOVED FROM HERE
+            # The dropdown will now be populated when solutions are displayed
+            # Reset/disable the dropdown initially
+            fragment_comb_dropdown.options = []
+            fragment_comb_dropdown.value = None
+            fragment_comb_dropdown.disabled = True
+            prev_smiles_button.disabled = True
+            next_smiles_button.disabled = True
+            smiles_pagination_label.value = "0 of 0"
+            smiles_display_area.value = "<p>Display solutions to populate fragment combinations.</p>"
 
         except Exception as e:
             logger.error(f"An error occurred during retrosynthesis: {e}", exc_info=True)  # Include traceback
@@ -234,6 +287,74 @@ def on_solution_select(change):
 solution_dropdown.observe(on_solution_select, names="value")
 
 
+# --- SMILES Viewer Logic ---
+
+
+def update_smiles_display():
+    """Updates the SMILES display area and pagination controls."""
+    smiles_list = app_state.get("current_smiles_list", [])
+    index = app_state.get("current_smiles_index", 0)
+    total_smiles = len(smiles_list)
+
+    if not smiles_list:
+        smiles_display_area.value = "<p>No SMILES found for this combination.</p>"
+        smiles_pagination_label.value = "0 of 0"
+        prev_smiles_button.disabled = True
+        next_smiles_button.disabled = True
+        return
+
+    current_smiles = smiles_list[index]
+    # Use HTML for better formatting, potentially wrapping long SMILES
+    smiles_display_area.value = f"<p style='word-wrap: break-word;'>{current_smiles}</p>"
+    smiles_pagination_label.value = f"{index + 1} of {total_smiles}"
+
+    # Update button states
+    prev_smiles_button.disabled = index == 0
+    next_smiles_button.disabled = index >= total_smiles - 1
+
+
+def on_fragment_comb_select(change):
+    """Handles selection changes in the fragment combination dropdown."""
+    if change["type"] == "change" and change["name"] == "value":
+        selected_comb = change["new"]
+        retro_tool = app_state.get("retro_tool")
+
+        if selected_comb is None or retro_tool is None or not hasattr(retro_tool, "comb_bbs_dict"):
+            app_state["selected_fragment_comb"] = None
+            app_state["current_smiles_list"] = []
+            app_state["current_smiles_index"] = 0
+        else:
+            # Ensure smiles_list is a list for indexing
+            smiles_data = retro_tool.comb_bbs_dict.get(selected_comb, set())  # Default to empty set
+            smiles_list = list(smiles_data)  # Convert set (or other iterable) to list
+            app_state["selected_fragment_comb"] = selected_comb
+            app_state["current_smiles_list"] = smiles_list
+            app_state["current_smiles_index"] = 0  # Reset index on new selection
+
+        update_smiles_display()  # Update the display
+
+
+def on_prev_smiles_click(b):
+    """Handles clicks on the 'Previous' SMILES button."""
+    if app_state["current_smiles_index"] > 0:
+        app_state["current_smiles_index"] -= 1
+        update_smiles_display()
+
+
+def on_next_smiles_click(b):
+    """Handles clicks on the 'Next' SMILES button."""
+    smiles_list = app_state.get("current_smiles_list", [])
+    if app_state["current_smiles_index"] < len(smiles_list) - 1:
+        app_state["current_smiles_index"] += 1
+        update_smiles_display()
+
+
+# Attach handlers
+fragment_comb_dropdown.observe(on_fragment_comb_select, names="value")
+prev_smiles_button.on_click(on_prev_smiles_click)
+next_smiles_button.on_click(on_next_smiles_click)
+
+
 # --- Solution Display Logic ---
 def display_solutions_on_click(b):
     # Clear previous display messages and image
@@ -245,12 +366,26 @@ def display_solutions_on_click(b):
     with image_display_area:
         clear_output(wait=True)
 
-    # Reset dropdown state
+    # Reset solution dropdown state
     solution_dropdown.unobserve(on_solution_select, names="value")  # Temporarily unobserve
     solution_dropdown.options = []
     solution_dropdown.value = None
     solution_dropdown.disabled = True
     app_state["valid_images_cache"] = []  # Clear cache
+
+    # --- Reset SMILES viewer state ---
+    fragment_comb_dropdown.unobserve(on_fragment_comb_select, names="value")  # Temporarily unobserve
+    fragment_comb_dropdown.options = []
+    fragment_comb_dropdown.value = None
+    fragment_comb_dropdown.disabled = True
+    prev_smiles_button.disabled = True
+    next_smiles_button.disabled = True
+    smiles_pagination_label.value = "0 of 0"
+    smiles_display_area.value = "<p>Select a fragment combination above.</p>"
+    app_state["selected_fragment_comb"] = None
+    app_state["current_smiles_list"] = []
+    app_state["current_smiles_index"] = 0
+    # --- End Reset SMILES viewer state ---
 
     retro_solution = app_state.get("retro_solution")
     fragment_count = fragment_count_input.value
@@ -302,10 +437,7 @@ def display_solutions_on_click(b):
         for i, img in enumerate(solution_images):
             if img:
                 valid_images.append(img)
-                # Find original index from filtered_solutions based on content or assume order preservation
-                # This assumes visualize_solutions preserves the order of filtered_solutions
-                # To be robust, we might need to match based on solution content if order isn't guaranteed
-                # For now, assuming order is preserved:
+                # Assuming order is preserved to find original index
                 original_solution_index = retro_solution.solutions.index(filtered_solutions[i])
                 original_indices.append(original_solution_index)
             else:
@@ -327,14 +459,33 @@ def display_solutions_on_click(b):
 
         # --- Update Interactive Display Widgets ---
 
-        # Update Dropdown options
+        # Update Solution Dropdown options
         dropdown_options = [(f"Solution {original_indices[i]+1}", i) for i in range(num_valid_images)]
         solution_dropdown.options = dropdown_options
         solution_dropdown.value = 0  # Default to showing the first valid solution
         solution_dropdown.disabled = False
+        solution_dropdown.observe(on_solution_select, names="value")  # Re-register observer
 
-        # Re-register the observer
-        solution_dropdown.observe(on_solution_select, names="value")
+        # --- Populate Fragment Combination Dropdown Based on Filtered Solutions ---
+        relevant_combs = set()
+        for sol in filtered_solutions:
+            # Each solution `sol` is a list of fragment combination tuples
+            for comb in sol:
+                relevant_combs.add(comb)
+
+        if relevant_combs:
+            sorted_relevant_combs = sorted(list(relevant_combs))
+            fragment_comb_dropdown.options = [(str(comb), comb) for comb in sorted_relevant_combs]
+            fragment_comb_dropdown.disabled = False
+            smiles_display_area.value = "<p>Select a fragment combination to view SMILES.</p>"
+        else:
+            fragment_comb_dropdown.options = []
+            fragment_comb_dropdown.disabled = True
+            smiles_display_area.value = "<p>No fragment combinations found in the displayed solutions.</p>"
+
+        fragment_comb_dropdown.value = None  # Ensure no initial selection
+        fragment_comb_dropdown.observe(on_fragment_comb_select, names="value")  # Re-register observer
+        # --- End Fragment Combination Dropdown Update ---
 
         # Display the initial image
         with image_display_area:
@@ -370,6 +521,17 @@ solution_display_section = widgets.VBox(
     ]
 )
 
+# VBox for the SMILES viewer section
+smiles_pagination_controls = widgets.HBox([prev_smiles_button, smiles_pagination_label, next_smiles_button])
+smiles_viewer_section = widgets.VBox(
+    [
+        widgets.HTML("<hr><h4>Browse Fragment Combination SMILES:</h4>"),
+        fragment_comb_dropdown,
+        smiles_display_area,
+        smiles_pagination_controls,
+    ]
+)
+
 gui_layout = widgets.VBox(
     [
         widgets.HTML("<h2>FragmentRetro Retrosynthesis GUI</h2>"),
@@ -381,6 +543,7 @@ gui_layout = widgets.VBox(
         run_button,
         output_area,  # Area for run messages
         solution_display_section,  # Add the whole solution display section here
+        smiles_viewer_section,  # Add the SMILES viewer section
     ]
 )
 
@@ -400,4 +563,17 @@ def display_gui(smiles: str | None = None):
         clear_output()
     with output_area:
         clear_output()
+    # Reset SMILES viewer state
+    fragment_comb_dropdown.options = []
+    fragment_comb_dropdown.value = None
+    fragment_comb_dropdown.disabled = True
+    prev_smiles_button.disabled = True
+    next_smiles_button.disabled = True
+    smiles_pagination_label.value = "0 of 0"
+    smiles_display_area.value = "<p>Run retrosynthesis to view fragment combination SMILES.</p>"
+    app_state["retro_tool"] = None
+    app_state["selected_fragment_comb"] = None
+    app_state["current_smiles_list"] = []
+    app_state["current_smiles_index"] = 0
+
     display(gui_layout)
