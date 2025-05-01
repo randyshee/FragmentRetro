@@ -140,6 +140,7 @@ app_state = {
     "selected_fragment_comb": None,
     "current_smiles_list": [],
     "current_smiles_index": 0,
+    "displayable_solutions": [],  # Store solutions corresponding to valid images
 }
 
 # --- Logic ---
@@ -167,6 +168,7 @@ def run_retrosynthesis_on_click(b):
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
     app_state["current_smiles_index"] = 0
+    app_state["displayable_solutions"] = []  # Clear displayable solutions
 
     with output_area:
         clear_output(wait=True)  # Clear previous run output
@@ -267,24 +269,38 @@ def run_retrosynthesis_on_click(b):
 run_button.on_click(run_retrosynthesis_on_click)
 
 
-# --- Observer for Dropdown --- (Defined globally once)
-def on_solution_select(change):
-    if change["type"] == "change" and change["name"] == "value":
-        selected_index = change["new"]  # The 'new' key holds the selected value (index in valid_images_cache)
-        # Ensure the index is valid before updating the image
-        valid_images_cache = app_state.get("valid_images_cache", [])
-        if selected_index is not None and 0 <= selected_index < len(valid_images_cache):
-            with image_display_area:
-                clear_output(wait=True)  # Clear previous image
-                display(valid_images_cache[selected_index])  # Directly display the selected image object
-        elif selected_index is None:
-            with image_display_area:
-                clear_output(wait=True)
-                print("No solution selected or available.")
+# --- Helper to Update Fragment Combination Dropdown ---
+def update_fragment_comb_dropdown(solution):
+    """Populates the fragment comb dropdown based on a single solution."""
+    # Temporarily unobserve to prevent firing during update
+    try:
+        fragment_comb_dropdown.unobserve(on_fragment_comb_select, names="value")  # Temporarily unobserve
+    except ValueError:
+        pass  # Observer might not be attached
 
+    if solution:
+        # Extract unique fragment combinations from the *single* selected solution
+        # Sort them for consistent order (tuples are sortable)
+        unique_combs = sorted(list(set(solution)))
+        fragment_comb_dropdown.options = [(str(comb), comb) for comb in unique_combs]
+        fragment_comb_dropdown.disabled = False
+        smiles_display_area.value = "<p>Select a fragment combination to view SMILES.</p>"
+    else:
+        # No solution provided or solution is empty
+        fragment_comb_dropdown.options = []
+        fragment_comb_dropdown.disabled = True
+        smiles_display_area.value = "<p>No fragment combinations in the selected solution.</p>"
 
-# Register the observer function with the dropdown widget
-solution_dropdown.observe(on_solution_select, names="value")
+    # Reset SMILES viewer state
+    fragment_comb_dropdown.value = None
+    prev_smiles_button.disabled = True
+    next_smiles_button.disabled = True
+    smiles_pagination_label.value = "0 of 0"
+    app_state["selected_fragment_comb"] = None
+    app_state["current_smiles_list"] = []
+    app_state["current_smiles_index"] = 0
+
+    fragment_comb_dropdown.observe(on_fragment_comb_select, names="value")  # Re-register observer
 
 
 # --- SMILES Viewer Logic ---
@@ -367,21 +383,28 @@ def display_solutions_on_click(b):
         clear_output(wait=True)
 
     # Reset solution dropdown state
-    solution_dropdown.unobserve(on_solution_select, names="value")  # Temporarily unobserve
+    try:
+        solution_dropdown.unobserve(on_solution_select, names="value")  # Temporarily unobserve
+    except ValueError:
+        pass  # Observer likely wasn't attached yet
     solution_dropdown.options = []
     solution_dropdown.value = None
     solution_dropdown.disabled = True
     app_state["valid_images_cache"] = []  # Clear cache
+    app_state["displayable_solutions"] = []  # Clear displayable solutions
 
     # --- Reset SMILES viewer state ---
-    fragment_comb_dropdown.unobserve(on_fragment_comb_select, names="value")  # Temporarily unobserve
+    try:
+        fragment_comb_dropdown.unobserve(on_fragment_comb_select, names="value")  # Temporarily unobserve
+    except ValueError:
+        pass  # Observer likely wasn't attached yet
     fragment_comb_dropdown.options = []
     fragment_comb_dropdown.value = None
     fragment_comb_dropdown.disabled = True
     prev_smiles_button.disabled = True
     next_smiles_button.disabled = True
     smiles_pagination_label.value = "0 of 0"
-    smiles_display_area.value = "<p>Select a fragment combination above.</p>"
+    smiles_display_area.value = "<p>Select a solution to view its fragment combinations.</p>"
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
     app_state["current_smiles_index"] = 0
@@ -431,12 +454,15 @@ def display_solutions_on_click(b):
                 print(msg)
             return
 
-        # Filter out None values and store valid images with their original indices
+        # Filter out None values and store valid images and corresponding solutions
         valid_images = []
+        displayable_solutions = []  # Temporary list for this run
         original_indices = []  # Keep track of original index for labeling
         for i, img in enumerate(solution_images):
             if img:
                 valid_images.append(img)
+                # Store the actual solution corresponding to this valid image
+                displayable_solutions.append(filtered_solutions[i])
                 # Assuming order is preserved to find original index
                 original_solution_index = retro_solution.solutions.index(filtered_solutions[i])
                 original_indices.append(original_solution_index)
@@ -445,6 +471,7 @@ def display_solutions_on_click(b):
 
         num_valid_images = len(valid_images)
         app_state["valid_images_cache"] = valid_images  # Store images for the observer
+        app_state["displayable_solutions"] = displayable_solutions  # Store solutions for the observer
 
         if num_valid_images == 0:
             msg = "Visualization did not produce any valid images."
@@ -460,32 +487,22 @@ def display_solutions_on_click(b):
         # --- Update Interactive Display Widgets ---
 
         # Update Solution Dropdown options
+        # The value `i` will now be the index into valid_images and displayable_solutions
         dropdown_options = [(f"Solution {original_indices[i]+1}", i) for i in range(num_valid_images)]
         solution_dropdown.options = dropdown_options
         solution_dropdown.value = 0  # Default to showing the first valid solution
         solution_dropdown.disabled = False
         solution_dropdown.observe(on_solution_select, names="value")  # Re-register observer
 
-        # --- Populate Fragment Combination Dropdown Based on Filtered Solutions ---
-        relevant_combs = set()
-        for sol in filtered_solutions:
-            # Each solution `sol` is a list of fragment combination tuples
-            for comb in sol:
-                relevant_combs.add(comb)
-
-        if relevant_combs:
-            sorted_relevant_combs = sorted(list(relevant_combs))
-            fragment_comb_dropdown.options = [(str(comb), comb) for comb in sorted_relevant_combs]
-            fragment_comb_dropdown.disabled = False
-            smiles_display_area.value = "<p>Select a fragment combination to view SMILES.</p>"
+        # --- Populate Fragment Combination Dropdown for the INITIALLY selected solution ---
+        if num_valid_images > 0:
+            initial_solution = app_state["displayable_solutions"][0]
+            update_fragment_comb_dropdown(initial_solution)
         else:
-            fragment_comb_dropdown.options = []
-            fragment_comb_dropdown.disabled = True
-            smiles_display_area.value = "<p>No fragment combinations found in the displayed solutions.</p>"
+            # No valid solutions, ensure dropdown is empty/disabled
+            update_fragment_comb_dropdown(None)
 
-        fragment_comb_dropdown.value = None  # Ensure no initial selection
-        fragment_comb_dropdown.observe(on_fragment_comb_select, names="value")  # Re-register observer
-        # --- End Fragment Combination Dropdown Update ---
+        # --- End Initial Fragment Combination Population ---
 
         # Display the initial image
         with image_display_area:
@@ -575,5 +592,37 @@ def display_gui(smiles: str | None = None):
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
     app_state["current_smiles_index"] = 0
+    app_state["displayable_solutions"] = []  # Clear displayable solutions
 
     display(gui_layout)
+
+
+# --- Observer for Dropdown --- (Defined globally once)
+def on_solution_select(change):
+    if change["type"] == "change" and change["name"] == "value":
+        selected_index = change[
+            "new"
+        ]  # The 'new' key holds the selected value (index in valid_images_cache/displayable_solutions)
+        valid_images_cache = app_state.get("valid_images_cache", [])
+        displayable_solutions = app_state.get("displayable_solutions", [])
+
+        # Display the selected image
+        if selected_index is not None and 0 <= selected_index < len(valid_images_cache):
+            with image_display_area:
+                clear_output(wait=True)  # Clear previous image
+                display(valid_images_cache[selected_index])  # Directly display the selected image object
+
+            # Update the fragment comb dropdown based on the selected solution
+            if selected_index < len(displayable_solutions):
+                selected_solution = displayable_solutions[selected_index]
+                update_fragment_comb_dropdown(selected_solution)
+            else:
+                # Should not happen if lists are kept in sync, but handle defensively
+                update_fragment_comb_dropdown(None)
+
+        elif selected_index is None:
+            with image_display_area:
+                clear_output(wait=True)
+                print("No solution selected or available.")
+            # Clear the fragment comb dropdown as well
+            update_fragment_comb_dropdown(None)
