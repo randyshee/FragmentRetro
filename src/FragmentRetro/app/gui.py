@@ -78,13 +78,28 @@ run_button = widgets.Button(
 output_area = widgets.Output()
 
 # --- Solution Display Widgets (Defined Statically) ---
+# Add Filter checkbox
+filter_checkbox = widgets.Checkbox(value=False, description="Filter", indent=False)
+
 fragment_count_input = widgets.IntText(
     value=None,
     placeholder="Enter desired fragment count",
     description="Number of Fragments:",
     style={"description_width": "initial"},
     layout=widgets.Layout(width="300px"),
+    disabled=True,  # Initially disabled
 )
+
+
+# Link filter checkbox to enable/disable fragment count input
+def handle_filter_change(change):
+    fragment_count_input.disabled = not change["new"]
+    # Clear the value if disabling the filter
+    if not change["new"]:
+        fragment_count_input.value = None
+
+
+filter_checkbox.observe(handle_filter_change, names="value")
 
 display_button = widgets.Button(
     description="Display Solutions",
@@ -441,7 +456,8 @@ def display_solutions_on_click(b):
     # --- End Reset SMILES viewer state ---
 
     retro_solution = app_state.get("retro_solution")
-    fragment_count = fragment_count_input.value
+    use_filter = filter_checkbox.value
+    fragment_count = fragment_count_input.value if use_filter else None  # Get value only if filter is checked
 
     if retro_solution is None:
         msg = "No retrosynthesis results available. Please run retrosynthesis first."
@@ -450,17 +466,27 @@ def display_solutions_on_click(b):
             print(msg)
         return
 
-    if fragment_count is None or not isinstance(fragment_count, int) or fragment_count <= 0:
-        logger.warning("Invalid fragment count. Displaying all solutions.")
+    # Apply filter only if checkbox is checked and value is valid
+    if use_filter and (fragment_count is None or not isinstance(fragment_count, int) or fragment_count <= 0):
+        logger.warning("Filter checkbox is checked, but fragment count is invalid. Displaying all solutions.")
         with solution_output_area:
-            print("Invalid fragment count input. Displaying all available solutions.")
+            print(
+                "Filter checkbox is checked, but fragment count input is invalid. Displaying all available solutions."
+            )
         filtered_solutions = retro_solution.solutions
-    else:
+    elif use_filter:
+        # Checkbox is checked and value is valid - apply filter
         filtered_solutions = [sol for sol in retro_solution.solutions if len(sol) == fragment_count]
         msg = f"Filtering for solutions with exactly {fragment_count} fragments."
         logger.info(msg)
         with solution_output_area:
             print(msg)
+    else:
+        # Filter checkbox is unchecked - display all solutions
+        logger.warning("Invalid fragment count. Displaying all solutions.")
+        with solution_output_area:
+            print("Filter checkbox is unchecked. Displaying all available solutions.")
+        filtered_solutions = retro_solution.solutions
 
     if not filtered_solutions:
         msg = f"No solutions found matching the criteria (count: {fragment_count})."
@@ -560,6 +586,7 @@ parallel_options = widgets.VBox([parallelize_checkbox, num_cores_input, core_fac
 solution_display_section = widgets.VBox(
     [
         widgets.HTML("<hr><h4>Display Solutions:</h4>"),  # Separator and header
+        filter_checkbox,
         fragment_count_input,
         display_button,
         solution_output_area,  # Area for messages related to display
