@@ -6,11 +6,11 @@ from IPython.display import clear_output, display
 from rdkit import Chem  # Add RDKit Chem
 from rdkit.Chem import Draw  # Add RDKit Draw
 
+from app.logging_config import logger
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
 from FragmentRetro.utils.helpers import sort_by_heavy_atoms
-from FragmentRetro.utils.logging_config import logger
 
 # --- Widgets ---
 
@@ -184,7 +184,8 @@ def run_retrosynthesis_on_click(b):
     smiles_pagination_label.value = "0 of 0"
     with smiles_display_area:
         clear_output()
-        print("Run retrosynthesis to populate fragment combinations.")
+        # Use logger instead of print
+        logger.info("[GUI] Run retrosynthesis to populate fragment combinations.")
     app_state["retro_tool"] = None
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
@@ -193,8 +194,8 @@ def run_retrosynthesis_on_click(b):
 
     with output_area:
         clear_output(wait=True)  # Clear previous run output
-        logger.info("Starting retrosynthesis...")
-        print("Starting retrosynthesis...")  # Also print to output area
+        # Use logger instead of print
+        logger.info("[GUI] Starting retrosynthesis...")
 
         target = target_smiles_input.value
         fragmenter_name = fragmenter_choice.value
@@ -204,24 +205,24 @@ def run_retrosynthesis_on_click(b):
         core_factor = core_factor_input.value
 
         if not target:
-            logger.error("Target SMILES cannot be empty.")
-            print("ERROR: Target SMILES cannot be empty.")
+            # Use logger instead of print
+            logger.error("[GUI] ERROR: Target SMILES cannot be empty.")
             return
 
         if not json_path_str:
-            logger.warning("Properties JSON path is empty. Proceeding without molecule properties.")
-            print("WARNING: Properties JSON path is empty. Proceeding without molecule properties.")
+            # Use logger instead of print
+            logger.warning("[GUI] WARNING: Properties JSON path is empty. Proceeding without molecule properties.")
             mol_properties_path = None
         else:
             mol_properties_path = Path(json_path_str)
             if not mol_properties_path.is_file():
-                logger.error(f"Properties file not found at {mol_properties_path}")
-                print(f"ERROR: Properties file not found at {mol_properties_path}")
+                # Use logger instead of print
+                logger.error(f"[GUI] ERROR: Properties file not found at {mol_properties_path}")
                 # Fallback or further error handling needed
                 # For now, setting to None to allow process without properties
                 mol_properties_path = None
-                logger.warning("Proceeding without molecule properties.")
-                print("WARNING: Proceeding without molecule properties.")
+                # Use logger instead of print
+                logger.warning("[GUI] WARNING: Proceeding without molecule properties.")
                 # return # Or decide how to proceed
 
         try:
@@ -231,16 +232,14 @@ def run_retrosynthesis_on_click(b):
             elif fragmenter_name == "rBRICSFragmenter":
                 fragmenter = rBRICSFragmenter(target)
             else:
-                logger.error(f"Unknown fragmenter type '{fragmenter_name}'")
-                print(f"ERROR: Unknown fragmenter type '{fragmenter_name}'")
+                # Use logger instead of print
+                logger.error(f"[GUI] ERROR: Unknown fragmenter type '{fragmenter_name}'")
                 return
 
-            logger.info(f"Using Fragmenter: {fragmenter_name}")
-            print(f"Using Fragmenter: {fragmenter_name}")
-            logger.info(f"Using Properties: {mol_properties_path}")
-            print(f"Using Properties: {mol_properties_path}")
-            logger.info(f"Parallelize: {parallelize}, Num Cores: {num_cores}, Core Factor: {core_factor}")
-            print(f"Parallelize: {parallelize}, Num Cores: {num_cores}, Core Factor: {core_factor}")
+            # Use logger instead of print
+            logger.info(f"[GUI] Using Fragmenter: {fragmenter_name}")
+            logger.info(f"[GUI] Using Properties: {mol_properties_path}")
+            logger.info(f"[GUI] Parallelize: {parallelize}, Num Cores: {num_cores}, Core Factor: {core_factor}")
 
             # Initialize Retrosynthesis tool
             # Pass parallelization options
@@ -254,21 +253,22 @@ def run_retrosynthesis_on_click(b):
             )
 
             # Run fragmentation and retrosynthesis
-            logger.info("Running fragmentation and retrosynthesis...")
-            print("Running fragmentation and retrosynthesis...")
+            # Use logger instead of print
+            logger.info("[GUI] Running fragmentation and retrosynthesis...")
             retro_tool.fragment_retrosynthesis()
 
             # Process solutions
             retro_solution = RetrosynthesisSolution(retro_tool)
             retro_solution.fill_solutions()
 
-            logger.info(f"Found {len(retro_solution.solutions)} solution(s).")
-            print(f"Found {len(retro_solution.solutions)} solution(s).")
+            # Use logger instead of print
+            logger.info(f"[GUI] Found {len(retro_solution.solutions)} solution(s).")
 
             # Store the solution object and retro_tool in the state
             app_state["retro_solution"] = retro_solution
             app_state["retro_tool"] = retro_tool  # Store the tool
-            print("Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
+            # Use logger instead of print
+            logger.info("[GUI] Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
 
             # Populate fragment combination dropdown - REMOVED FROM HERE
             # The dropdown will now be populated when solutions are displayed
@@ -281,11 +281,12 @@ def run_retrosynthesis_on_click(b):
             smiles_pagination_label.value = "0 of 0"
             with smiles_display_area:
                 clear_output()
-                print("Display solutions to populate fragment combinations.")
+                # Use logger instead of print
+                logger.info("[GUI] Display solutions to populate fragment combinations.")
 
         except Exception as e:
-            logger.error(f"An error occurred during retrosynthesis: {e}", exc_info=True)  # Include traceback
-            print(f"ERROR during retrosynthesis: {e}")
+            # Use logger instead of print, include traceback
+            logger.error(f"[GUI] ERROR during retrosynthesis: {e}", exc_info=True)
 
 
 # Attach the function to the button's click event
@@ -309,14 +310,16 @@ def update_fragment_comb_dropdown(solution):
         fragment_comb_dropdown.disabled = False
         with smiles_display_area:
             clear_output()
-            print("Select a fragment combination to view SMILES.")
+            # Use logger instead of print
+            logger.info("[GUI] Select a fragment combination to view SMILES.")
     else:
         # No solution provided or solution is empty
         fragment_comb_dropdown.options = []
         fragment_comb_dropdown.disabled = True
         with smiles_display_area:
             clear_output()
-            print("No fragment combinations in the selected solution.")
+            # Use logger instead of print
+            logger.info("[GUI] No fragment combinations in the selected solution.")
 
     # Reset SMILES viewer state
     fragment_comb_dropdown.value = None
@@ -342,7 +345,8 @@ def update_smiles_display():
     with smiles_display_area:
         clear_output(wait=True)  # Clear previous image/message
         if not smiles_list:
-            print("No SMILES found for this combination.")
+            # Use logger instead of print
+            logger.info("[GUI] No SMILES found for this combination.")
             smiles_pagination_label.value = "0 of 0"
             prev_smiles_button.disabled = True
             next_smiles_button.disabled = True
@@ -360,10 +364,11 @@ def update_smiles_display():
                 image_widget = widgets.Image(value=bio.getvalue(), format="png", width=300, height=300)
                 display(image_widget)
             else:
-                print(f"Invalid SMILES: {current_smiles}")
+                # Use logger instead of print
+                logger.warning(f"[GUI] Invalid SMILES: {current_smiles}")
         except Exception as e:
-            logger.error(f"Error generating image for SMILES {current_smiles}: {e}")
-            print(f"Error generating image for SMILES: {current_smiles}")
+            # Use logger instead of print
+            logger.error(f"[GUI] Error generating image for SMILES {current_smiles}: {e}")
 
     # Update pagination label and button states outside the 'with' block
     # as they are separate widgets
@@ -419,8 +424,8 @@ def display_solutions_on_click(b):
     # Clear previous display messages and image
     with solution_output_area:
         clear_output(wait=True)
-        logger.info("Attempting to display solutions...")
-        print("Attempting to display solutions...")
+        # Use logger instead of print
+        logger.info("[GUI] Attempting to display solutions...")
 
     with image_display_area:
         clear_output(wait=True)
@@ -449,7 +454,8 @@ def display_solutions_on_click(b):
     smiles_pagination_label.value = "0 of 0"
     with smiles_display_area:
         clear_output()
-        print("Select a solution to view its fragment combinations.")
+        # Use logger instead of print
+        logger.info("[GUI] Select a solution to view its fragment combinations.")
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
     app_state["current_smiles_index"] = 0
@@ -463,41 +469,49 @@ def display_solutions_on_click(b):
         msg = "No retrosynthesis results available. Please run retrosynthesis first."
         logger.warning(msg)
         with solution_output_area:
-            print(msg)
+            # Use logger instead of print
+            logger.warning(f"[GUI] {msg}")
         return
 
     # Apply filter only if checkbox is checked and value is valid
     if use_filter and (fragment_count is None or not isinstance(fragment_count, int) or fragment_count <= 0):
-        logger.warning("Filter checkbox is checked, but fragment count is invalid. Displaying all solutions.")
+        msg = "Filter checkbox is checked, but fragment count is invalid. Displaying all solutions."
+        logger.warning(f"[GUI] {msg}")
         with solution_output_area:
-            print(
-                "Filter checkbox is checked, but fragment count input is invalid. Displaying all available solutions."
-            )
+            # Use logger instead of print
+            logger.warning(f"[GUI] {msg}")
         filtered_solutions = retro_solution.solutions
     elif use_filter:
         # Checkbox is checked and value is valid - apply filter
         filtered_solutions = [sol for sol in retro_solution.solutions if len(sol) == fragment_count]
         msg = f"Filtering for solutions with exactly {fragment_count} fragments."
-        logger.info(msg)
+        logger.info(f"[GUI] {msg}")
         with solution_output_area:
-            print(msg)
+            # Use logger instead of print
+            logger.info(f"[GUI] {msg}")
     else:
         # Filter checkbox is unchecked - display all solutions
-        logger.warning("Invalid fragment count. Displaying all solutions.")
+        msg = "Filter checkbox is unchecked. Displaying all available solutions."
+        # Use logger instead of print
+        logger.info(f"[GUI] {msg}")
         with solution_output_area:
-            print("Filter checkbox is unchecked. Displaying all available solutions.")
+            # Use logger instead of print
+            logger.info(f"[GUI] {msg}")
         filtered_solutions = retro_solution.solutions
 
     if not filtered_solutions:
         msg = f"No solutions found matching the criteria (count: {fragment_count})."
-        logger.info(msg)
+        logger.info(f"[GUI] {msg}")
         with solution_output_area:
-            print(msg)
+            # Use logger instead of print
+            logger.info(f"[GUI] {msg}")
         return
 
-    logger.info(f"Visualizing {len(filtered_solutions)} solution(s)...")
+    # Use logger instead of print
+    logger.info(f"[GUI] Visualizing {len(filtered_solutions)} solution(s)...")
     with solution_output_area:
-        print(f"Visualizing {len(filtered_solutions)} solution(s)...")
+        # Use logger instead of print
+        logger.info(f"[GUI] Visualizing {len(filtered_solutions)} solution(s)...")
 
     try:
         # Generate one image per solution in filtered_solutions
@@ -505,9 +519,10 @@ def display_solutions_on_click(b):
 
         if not solution_images:
             msg = "Visualization did not produce any images."
-            logger.info(msg)
+            logger.info(f"[GUI] {msg}")
             with solution_output_area:
-                print(msg)
+                # Use logger instead of print
+                logger.info(f"[GUI] {msg}")
             return
 
         # Filter out None values and store valid images and corresponding solutions
@@ -523,7 +538,8 @@ def display_solutions_on_click(b):
                 original_solution_index = retro_solution.solutions.index(filtered_solutions[i])
                 original_indices.append(original_solution_index)
             else:
-                logger.warning(f"Null image returned by visualize_solutions for filtered solution index {i}")
+                # Use logger instead of print
+                logger.warning(f"[GUI] Null image returned by visualize_solutions for filtered solution index {i}")
 
         num_valid_images = len(valid_images)
         app_state["valid_images_cache"] = valid_images  # Store images for the observer
@@ -531,14 +547,17 @@ def display_solutions_on_click(b):
 
         if num_valid_images == 0:
             msg = "Visualization did not produce any valid images."
-            logger.info(msg)
+            logger.info(f"[GUI] {msg}")
             with solution_output_area:
-                print(msg)
+                # Use logger instead of print
+                logger.info(f"[GUI] {msg}")
             return
 
-        logger.info(f"Generated {num_valid_images} image(s) for interactive display.")
+        # Use logger instead of print
+        logger.info(f"[GUI] Generated {num_valid_images} image(s) for interactive display.")
         with solution_output_area:
-            print(f"Generated {num_valid_images} image(s). Use dropdown to view.")
+            # Use logger instead of print
+            logger.info(f"[GUI] Generated {num_valid_images} image(s). Use dropdown to view.")
 
         # --- Update Interactive Display Widgets ---
 
@@ -565,12 +584,15 @@ def display_solutions_on_click(b):
             clear_output(wait=True)
             display(valid_images[0])  # Display the first valid image initially
 
-        logger.info("Solutions displayed.")
+        # Use logger instead of print
+        logger.info("[GUI] Solutions displayed.")
 
     except Exception as e:
-        logger.error(f"An error occurred during solution visualization: {e}", exc_info=True)
+        # Use logger instead of print
+        logger.error(f"[GUI] An error occurred during solution visualization: {e}", exc_info=True)
         with solution_output_area:
-            print(f"An error occurred during visualization: {e}")
+            # Use logger instead of print
+            logger.error(f"[GUI] An error occurred during visualization: {e}")
 
 
 # Attach the function to the display button's click event
@@ -646,7 +668,8 @@ def display_gui(smiles: str | None = None):
     smiles_pagination_label.value = "0 of 0"
     with smiles_display_area:
         clear_output()
-        print("Run retrosynthesis to view fragment combination SMILES.")
+        # Use logger instead of print
+        logger.info("[GUI] Run retrosynthesis to view fragment combination SMILES.")
     app_state["retro_tool"] = None
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
@@ -682,6 +705,7 @@ def on_solution_select(change):
         elif selected_index is None:
             with image_display_area:
                 clear_output(wait=True)
-                print("No solution selected or available.")
+                # Use logger instead of print
+                logger.info("[GUI] No solution selected or available.")
             # Clear the fragment comb dropdown as well
             update_fragment_comb_dropdown(None)
