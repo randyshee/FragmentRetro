@@ -1,7 +1,10 @@
+import io  # Add io for image handling
 from pathlib import Path
 
 import ipywidgets as widgets
 from IPython.display import clear_output, display
+from rdkit import Chem  # Add RDKit Chem
+from rdkit.Chem import Draw  # Add RDKit Draw
 
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
@@ -116,9 +119,9 @@ fragment_comb_dropdown = widgets.Dropdown(
     layout=widgets.Layout(width="auto"),
 )
 
-smiles_display_area = widgets.HTML(
-    value="<p>Select a fragment combination above.</p>",
-    layout=widgets.Layout(min_height="40px"),  # Ensure space for text
+# Change from HTML to Output to display images
+smiles_display_area = widgets.Output(
+    layout=widgets.Layout(min_height="320px", min_width="320px")  # Adjust layout for image
 )
 
 smiles_pagination_label = widgets.Label(value="0 of 0")
@@ -163,7 +166,9 @@ def run_retrosynthesis_on_click(b):
     prev_smiles_button.disabled = True
     next_smiles_button.disabled = True
     smiles_pagination_label.value = "0 of 0"
-    smiles_display_area.value = "<p>Run retrosynthesis to populate fragment combinations.</p>"
+    with smiles_display_area:
+        clear_output()
+        print("Run retrosynthesis to populate fragment combinations.")
     app_state["retro_tool"] = None
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
@@ -258,7 +263,9 @@ def run_retrosynthesis_on_click(b):
             prev_smiles_button.disabled = True
             next_smiles_button.disabled = True
             smiles_pagination_label.value = "0 of 0"
-            smiles_display_area.value = "<p>Display solutions to populate fragment combinations.</p>"
+            with smiles_display_area:
+                clear_output()
+                print("Display solutions to populate fragment combinations.")
 
         except Exception as e:
             logger.error(f"An error occurred during retrosynthesis: {e}", exc_info=True)  # Include traceback
@@ -284,12 +291,16 @@ def update_fragment_comb_dropdown(solution):
         unique_combs = sorted(list(set(solution)))
         fragment_comb_dropdown.options = [(str(comb), comb) for comb in unique_combs]
         fragment_comb_dropdown.disabled = False
-        smiles_display_area.value = "<p>Select a fragment combination to view SMILES.</p>"
+        with smiles_display_area:
+            clear_output()
+            print("Select a fragment combination to view SMILES.")
     else:
         # No solution provided or solution is empty
         fragment_comb_dropdown.options = []
         fragment_comb_dropdown.disabled = True
-        smiles_display_area.value = "<p>No fragment combinations in the selected solution.</p>"
+        with smiles_display_area:
+            clear_output()
+            print("No fragment combinations in the selected solution.")
 
     # Reset SMILES viewer state
     fragment_comb_dropdown.value = None
@@ -312,19 +323,35 @@ def update_smiles_display():
     index = app_state.get("current_smiles_index", 0)
     total_smiles = len(smiles_list)
 
-    if not smiles_list:
-        smiles_display_area.value = "<p>No SMILES found for this combination.</p>"
-        smiles_pagination_label.value = "0 of 0"
-        prev_smiles_button.disabled = True
-        next_smiles_button.disabled = True
-        return
+    with smiles_display_area:
+        clear_output(wait=True)  # Clear previous image/message
+        if not smiles_list:
+            print("No SMILES found for this combination.")
+            smiles_pagination_label.value = "0 of 0"
+            prev_smiles_button.disabled = True
+            next_smiles_button.disabled = True
+            return
 
-    current_smiles = smiles_list[index]
-    # Use HTML for better formatting, potentially wrapping long SMILES
-    smiles_display_area.value = f"<p style='word-wrap: break-word;'>{current_smiles}</p>"
+        current_smiles = smiles_list[index]
+
+        try:
+            mol = Chem.MolFromSmiles(current_smiles)
+            if mol:
+                img = Draw.MolToImage(mol, size=(300, 300))  # Generate PIL image
+                # Convert PIL image to PNG bytes
+                bio = io.BytesIO()
+                img.save(bio, format="PNG")
+                image_widget = widgets.Image(value=bio.getvalue(), format="png", width=300, height=300)
+                display(image_widget)
+            else:
+                print(f"Invalid SMILES: {current_smiles}")
+        except Exception as e:
+            logger.error(f"Error generating image for SMILES {current_smiles}: {e}")
+            print(f"Error generating image for SMILES: {current_smiles}")
+
+    # Update pagination label and button states outside the 'with' block
+    # as they are separate widgets
     smiles_pagination_label.value = f"{index + 1} of {total_smiles}"
-
-    # Update button states
     prev_smiles_button.disabled = index == 0
     next_smiles_button.disabled = index >= total_smiles - 1
 
@@ -404,7 +431,9 @@ def display_solutions_on_click(b):
     prev_smiles_button.disabled = True
     next_smiles_button.disabled = True
     smiles_pagination_label.value = "0 of 0"
-    smiles_display_area.value = "<p>Select a solution to view its fragment combinations.</p>"
+    with smiles_display_area:
+        clear_output()
+        print("Select a solution to view its fragment combinations.")
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
     app_state["current_smiles_index"] = 0
@@ -587,7 +616,9 @@ def display_gui(smiles: str | None = None):
     prev_smiles_button.disabled = True
     next_smiles_button.disabled = True
     smiles_pagination_label.value = "0 of 0"
-    smiles_display_area.value = "<p>Run retrosynthesis to view fragment combination SMILES.</p>"
+    with smiles_display_area:
+        clear_output()
+        print("Run retrosynthesis to view fragment combination SMILES.")
     app_state["retro_tool"] = None
     app_state["selected_fragment_comb"] = None
     app_state["current_smiles_list"] = []
