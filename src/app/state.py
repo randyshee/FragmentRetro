@@ -15,10 +15,8 @@ class AppState:
         self.selected_fragment_comb: CombType | None = None  # Assuming fragment comb is tuple of strings
         self.current_smiles_list: list[str] = []
         self.current_smiles_index: int = 0
-        self.displayable_solutions: list[
-            SolutionType
-        ] = []  # Type hint might need refinement based on solution structure
-        self.is_smiles_sorted: bool = False  # NEW: Track if the current SMILES list is sorted
+        self.displayable_solutions: list[SolutionType] = []
+        self.is_smiles_sorted: bool = False  # Track if the current SMILES list is sorted
 
     def reset_run_state(self) -> None:
         """Resets state related to a specific retrosynthesis run."""
