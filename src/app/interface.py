@@ -2,6 +2,7 @@ from IPython.display import display
 
 from app.gui.controller import GuiController
 from app.gui.layout import gui_layout
+from app.gui.state import AppState
 from app.gui.widgets import (
     fragment_comb_dropdown,
     image_display_area,
@@ -15,8 +16,6 @@ from app.gui.widgets import (
     sort_smiles_button,
     target_smiles_input,
 )
-from app.logging_config import logger
-from app.state import AppState
 
 
 # --- Main Function to Display GUI ---
@@ -53,7 +52,6 @@ def display_gui(smiles: str | None = None) -> None:
     smiles_pagination_label.value = "0 of 0"
     sort_smiles_button.disabled = True
     smiles_display_area.clear_output(wait=False)
-    logger.info("[GUI] Interface loaded. Enter target SMILES and run retrosynthesis.")  # Updated initial message
 
     # Reset backend state as well
     app_state.reset_run_state()

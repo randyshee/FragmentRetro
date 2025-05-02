@@ -1,7 +1,5 @@
 import ipywidgets as widgets
 
-# --- Widgets ---
-
 # Input fields
 target_smiles_input = widgets.Text(
     placeholder="Enter target molecule SMILES string",

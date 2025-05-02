@@ -1,7 +1,6 @@
 import ipywidgets as widgets
 
-# --- Import Widgets ---
-from .widgets import (
+from app.gui.widgets import (
     core_factor_input,
     display_button,
     file_path_input,
@@ -57,7 +56,7 @@ smiles_viewer_section = widgets.VBox(
 
 gui_layout = widgets.VBox(
     [
-        widgets.HTML("<h2>FragmentRetro Retrosynthesis GUI</h2>"),
+        widgets.HTML("<h2>FragmentRetro GUI</h2>"),
         target_smiles_input,
         fragmenter_choice,
         file_path_input,

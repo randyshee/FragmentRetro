@@ -8,16 +8,8 @@ from PIL.Image import Image as PILImage
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-from app.logging_config import logger
-from app.state import AppState
-from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
-from FragmentRetro.utils.helpers import sort_by_heavy_atoms
-from FragmentRetro.utils.type_definitions import CombType, SolutionType
-
-# Import necessary widgets
-from .widgets import (
+from app.gui.state import AppState
+from app.gui.widgets import (
     core_factor_input,
     display_button,
     file_path_input,
@@ -39,6 +31,12 @@ from .widgets import (
     sort_smiles_button,
     target_smiles_input,
 )
+from app.logging_config import logger
+from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
+from FragmentRetro.retrosynthesis import Retrosynthesis
+from FragmentRetro.solutions import RetrosynthesisSolution
+from FragmentRetro.utils.helpers import sort_by_heavy_atoms
+from FragmentRetro.utils.type_definitions import CombType, SolutionType
 
 
 class GuiController:
@@ -46,7 +44,6 @@ class GuiController:
 
     def __init__(self, state: AppState):
         self.state = state
-        # We will assign widgets later during setup
         self.target_smiles_input = target_smiles_input
         self.fragmenter_choice = fragmenter_choice
         self.file_path_input = file_path_input
@@ -80,8 +77,6 @@ class GuiController:
         self.display_button.on_click(self.display_solutions_on_click)
         self.solution_dropdown.observe(self.on_solution_select, names="value")
 
-    # --- Event Handlers --- (Moved from gui.py)
-
     def handle_parallelize_change(self, change: dict[str, bool]) -> None:
         """Callback to enable/disable core inputs based on parallelize checkbox."""
         is_parallel = change.get("new", False)
@@ -109,10 +104,12 @@ class GuiController:
         self.next_smiles_button.disabled = True
         self.smiles_pagination_label.value = "0 of 0"
         self.smiles_display_area.clear_output(wait=False)
-        logger.info("[GUI] Run retrosynthesis to populate fragment combinations.")
+        with self.smiles_display_area:
+            logger.info("[GUI] Run retrosynthesis to populate fragment combinations.")
 
         self.output_area.clear_output(wait=True)
-        logger.info("[GUI] Starting retrosynthesis...")
+        with self.output_area:
+            logger.info("[GUI] Starting retrosynthesis...")
 
         target: str = self.target_smiles_input.value
         fragmenter_name: str = self.fragmenter_choice.value
@@ -122,19 +119,17 @@ class GuiController:
         core_factor: int = self.core_factor_input.value  # type: ignore
 
         if not target:
-            logger.error("[GUI] ERROR: Target SMILES cannot be empty.")
+            with self.output_area:
+                logger.error("[GUI] ERROR: Target SMILES cannot be empty.")
             return
 
         mol_properties_path: Path | None = None
         if json_path_str:
             mol_properties_path = Path(json_path_str)
             if not mol_properties_path.is_file():
-                logger.error(f"[GUI] ERROR: Properties file not found at {mol_properties_path}")
-                mol_properties_path = None
-                logger.warning("[GUI] WARNING: Proceeding without molecule properties.")
-        else:
-            logger.warning("[GUI] WARNING: Properties JSON path is empty. Proceeding without molecule properties.")
-
+                with self.output_area:
+                    logger.error(f"[GUI] ERROR: Properties file not found at {mol_properties_path}")
+                # TODO: handle this error later
         try:
             fragmenter: BRICSFragmenter | rBRICSFragmenter | None = None
             if fragmenter_name == "BRICSFragmenter":
@@ -142,12 +137,14 @@ class GuiController:
             elif fragmenter_name == "rBRICSFragmenter":
                 fragmenter = rBRICSFragmenter(target)
             else:
-                logger.error(f"[GUI] ERROR: Unknown fragmenter type '{fragmenter_name}'")
+                with self.output_area:
+                    logger.error(f"[GUI] ERROR: Unknown fragmenter type '{fragmenter_name}'")
                 return
 
-            logger.info(f"[GUI] Using Fragmenter: {fragmenter_name}")
-            logger.info(f"[GUI] Using Properties: {mol_properties_path}")
-            logger.info(f"[GUI] Parallelize: {parallelize}, Num Cores: {num_cores}, Core Factor: {core_factor}")
+            with self.output_area:
+                logger.info(f"[GUI] Using Fragmenter: {fragmenter_name}")
+                logger.info(f"[GUI] Using Properties: {mol_properties_path}")
+                logger.info(f"[GUI] Parallelize: {parallelize}, Num Cores: {num_cores}, Core Factor: {core_factor}")
 
             retro_tool = Retrosynthesis(
                 fragmenter,
@@ -156,15 +153,17 @@ class GuiController:
                 num_cores=num_cores,
                 core_factor=core_factor,
             )
-            logger.info("[GUI] Running fragmentation and retrosynthesis...")
-            retro_tool.fragment_retrosynthesis()
-            retro_solution = RetrosynthesisSolution(retro_tool)
-            retro_solution.fill_solutions()
-            logger.info(f"[GUI] Found {len(retro_solution.solutions)} solution(s).")
+            with self.output_area:
+                logger.info("[GUI] Running fragmentation and retrosynthesis...")
+                retro_tool.fragment_retrosynthesis()
+                retro_solution = RetrosynthesisSolution(retro_tool)
+                retro_solution.fill_solutions()
+                logger.info(f"[GUI] Found {len(retro_solution.solutions)} solution(s).")
 
             self.state.retro_solution = retro_solution
             self.state.retro_tool = retro_tool
-            logger.info("[GUI] Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
+            with self.output_area:
+                logger.info("[GUI] Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
 
             self.fragment_comb_dropdown.options = []
             self.fragment_comb_dropdown.value = None
@@ -173,10 +172,12 @@ class GuiController:
             self.next_smiles_button.disabled = True
             self.smiles_pagination_label.value = "0 of 0"
             self.smiles_display_area.clear_output(wait=False)
-            logger.info("[GUI] Display solutions to populate fragment combinations.")
+            with self.smiles_display_area:
+                logger.info("[GUI] Display solutions to populate fragment combinations.")
 
         except Exception as e:
-            logger.error(f"[GUI] ERROR during retrosynthesis: {e}", exc_info=True)
+            with self.output_area:
+                logger.error(f"[GUI] ERROR during retrosynthesis: {e}", exc_info=True)
 
     def update_fragment_comb_dropdown(self, solution: SolutionType | None) -> None:
         """Populates the fragment comb dropdown based on a single solution."""
@@ -189,12 +190,12 @@ class GuiController:
             self.fragment_comb_dropdown.options = [(str(comb), comb) for comb in solution]
             self.fragment_comb_dropdown.disabled = False
             self.smiles_display_area.clear_output(wait=False)
-            logger.info("[GUI] Select a fragment combination to view SMILES.")
+            logger.debug("[GUI] Select a fragment combination to view SMILES.")
         else:
             self.fragment_comb_dropdown.options = []
             self.fragment_comb_dropdown.disabled = True
             self.smiles_display_area.clear_output(wait=False)
-            logger.info("[GUI] No fragment combinations in the selected solution.")
+            logger.debug("[GUI] No fragment combinations in the selected solution.")
 
         self.fragment_comb_dropdown.value = None
         self.prev_smiles_button.disabled = True
@@ -284,7 +285,7 @@ class GuiController:
     def display_solutions_on_click(self, b: widgets.Button) -> None:
         """Handles the click event for the 'Display Solutions' button."""
         self.solution_output_area.clear_output(wait=True)
-        logger.info("[GUI] Attempting to display solutions...")
+        logger.debug("[GUI] Attempting to display solutions...")
         self.image_display_area.clear_output(wait=True)
 
         try:
@@ -308,7 +309,8 @@ class GuiController:
         self.smiles_pagination_label.value = "0 of 0"
         self.sort_smiles_button.disabled = True
         self.smiles_display_area.clear_output(wait=False)
-        logger.info("[GUI] Select a solution to view its fragment combinations.")
+        with self.smiles_display_area:
+            logger.info("[GUI] Select a solution to view its fragment combinations.")
 
         retro_solution: RetrosynthesisSolution | None = self.state.retro_solution
         use_filter: bool = self.filter_checkbox.value
@@ -316,7 +318,6 @@ class GuiController:
 
         if retro_solution is None:
             msg = "No retrosynthesis results available. Please run retrosynthesis first."
-            logger.warning(f"[GUI] {msg}")
             with self.solution_output_area:
                 logger.warning(f"[GUI] {msg}")
             return
@@ -324,31 +325,26 @@ class GuiController:
         filtered_solutions: list[SolutionType] = []
         if use_filter and (fragment_count is None or not isinstance(fragment_count, int) or fragment_count <= 0):
             msg = "Filter checkbox is checked, but fragment count is invalid. Displaying all solutions."
-            logger.warning(f"[GUI] {msg}")
             with self.solution_output_area:
                 logger.warning(f"[GUI] {msg}")
             filtered_solutions = retro_solution.solutions
         elif use_filter:
             filtered_solutions = [sol for sol in retro_solution.solutions if len(sol) == fragment_count]
             msg = f"Filtering for solutions with exactly {fragment_count} fragments."
-            logger.info(f"[GUI] {msg}")
             with self.solution_output_area:
                 logger.info(f"[GUI] {msg}")
         else:
             msg = "Filter checkbox is unchecked. Displaying all available solutions."
-            logger.info(f"[GUI] {msg}")
             with self.solution_output_area:
                 logger.info(f"[GUI] {msg}")
             filtered_solutions = retro_solution.solutions
 
         if not filtered_solutions:
             msg = f"No solutions found matching the criteria (count: {fragment_count})."
-            logger.info(f"[GUI] {msg}")
             with self.solution_output_area:
                 logger.info(f"[GUI] {msg}")
             return
 
-        logger.info(f"[GUI] Visualizing {len(filtered_solutions)} solution(s)...")
         with self.solution_output_area:
             logger.info(f"[GUI] Visualizing {len(filtered_solutions)} solution(s)...")
 
@@ -356,7 +352,6 @@ class GuiController:
             solution_images: list[PILImage] = retro_solution.visualize_solutions(filtered_solutions)
             if not solution_images:
                 msg = "Visualization did not produce any images."
-                logger.info(f"[GUI] {msg}")
                 with self.solution_output_area:
                     logger.info(f"[GUI] {msg}")
                 return
@@ -373,10 +368,14 @@ class GuiController:
                         original_solution_index = retro_solution.solutions.index(current_filtered_solution)
                         original_indices.append(original_solution_index)
                     except ValueError:
-                        logger.error(f"[GUI] Could not find filtered solution {i} in original solutions list.")
+                        with self.solution_output_area:
+                            logger.error(f"[GUI] Could not find filtered solution {i} in original solutions list.")
                         original_indices.append(-1)
                 else:
-                    logger.warning(f"[GUI] Null image returned by visualize_solutions for filtered solution index {i}")
+                    with self.solution_output_area:
+                        logger.warning(
+                            f"[GUI] Null image returned by visualize_solutions for filtered solution index {i}"
+                        )
 
             num_valid_images = len(valid_images)
             self.state.valid_images_cache = valid_images
@@ -384,12 +383,10 @@ class GuiController:
 
             if num_valid_images == 0:
                 msg = "Visualization did not produce any valid images."
-                logger.info(f"[GUI] {msg}")
                 with self.solution_output_area:
                     logger.info(f"[GUI] {msg}")
                 return
 
-            logger.info(f"[GUI] Generated {num_valid_images} image(s) for interactive display.")
             with self.solution_output_area:
                 logger.info(f"[GUI] Generated {num_valid_images} image(s). Use dropdown to view.")
 
@@ -412,12 +409,12 @@ class GuiController:
                 with self.image_display_area:
                     display(valid_images[0])  # type: ignore
 
-            logger.info("[GUI] Solutions displayed.")
+            with self.solution_output_area:
+                logger.info("[GUI] Solutions displayed.")
 
         except Exception as e:
-            logger.error(f"[GUI] An error occurred during solution visualization: {e}", exc_info=True)
             with self.solution_output_area:
-                logger.error(f"[GUI] An error occurred during visualization: {e}")
+                logger.error(f"[GUI] An error occurred during solution visualization: {e}", exc_info=True)
 
     def on_solution_select(self, change: dict[str, str | int]) -> None:
         """Callback function for solution dropdown selection changes."""
@@ -436,13 +433,17 @@ class GuiController:
                     self.update_fragment_comb_dropdown(selected_solution)
                     self.state.reset_smiles_viewer_state()
                 else:
-                    logger.warning(f"[GUI] Selected index {selected_index} out of bounds for displayable_solutions.")
+                    with self.solution_output_area:
+                        logger.warning(
+                            f"[GUI] Selected index {selected_index} out of bounds for displayable_solutions."
+                        )
                     self.update_fragment_comb_dropdown(None)
                     self.state.reset_smiles_viewer_state()
 
             elif selected_index is None:
                 self.image_display_area.clear_output(wait=True)
-                logger.info("[GUI] No solution selected or available.")
+                with self.solution_output_area:
+                    logger.info("[GUI] No solution selected or available.")
                 self.update_fragment_comb_dropdown(None)
                 self.state.reset_smiles_viewer_state()
                 self.sort_smiles_button.disabled = True
