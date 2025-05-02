@@ -90,24 +90,31 @@ class GuiController:
         if not is_filtered:
             self.fragment_count_input.value = None  # type: ignore
 
-    def run_retrosynthesis_on_click(self, b: widgets.Button) -> None:
-        """Handles the click event for the 'Run Retrosynthesis' button."""
-        self.state.reset_run_state()
+    def reset_ui_outputs(self) -> None:
+        """Resets output areas, dropdowns, and buttons to their initial states."""
         self.solution_dropdown.options = []
         self.solution_dropdown.value = None
+        self.solution_dropdown.disabled = True
         self.image_display_area.clear_output(wait=False)
         self.solution_output_area.clear_output(wait=False)
+
         self.fragment_comb_dropdown.options = []
         self.fragment_comb_dropdown.value = None
         self.fragment_comb_dropdown.disabled = True
         self.prev_smiles_button.disabled = True
         self.next_smiles_button.disabled = True
         self.smiles_pagination_label.value = "0 of 0"
+        self.sort_smiles_button.disabled = True
         self.smiles_display_area.clear_output(wait=False)
         with self.smiles_display_area:
-            logger.info("[GUI] Run retrosynthesis to populate fragment combinations.")
+            logger.info("[GUI] Perform an action (Run/Display) to populate this area.")
 
-        self.output_area.clear_output(wait=True)
+    def run_retrosynthesis_on_click(self, b: widgets.Button) -> None:
+        """Handles the click event for the 'Run Retrosynthesis' button."""
+        self.state.reset_run_state()
+        self.reset_ui_outputs()  # Reset UI elements
+
+        self.output_area.clear_output(wait=True)  # Clear main output specifically for run
         with self.output_area:
             logger.info("[GUI] Starting retrosynthesis...")
 
@@ -123,15 +130,14 @@ class GuiController:
                 logger.error("[GUI] ERROR: Target SMILES cannot be empty.")
             return
 
-        mol_properties_path: Path | None = None
         if json_path_str:
             mol_properties_path = Path(json_path_str)
             if not mol_properties_path.is_file():
                 with self.output_area:
                     logger.error(f"[GUI] ERROR: Properties file not found at {mol_properties_path}")
-                # TODO: handle this error later
+                return
         try:
-            fragmenter: BRICSFragmenter | rBRICSFragmenter | None = None
+            logger.info("[GUI] Running fragmentation...")
             if fragmenter_name == "BRICSFragmenter":
                 fragmenter = BRICSFragmenter(target)
             elif fragmenter_name == "rBRICSFragmenter":
@@ -154,7 +160,7 @@ class GuiController:
                 core_factor=core_factor,
             )
             with self.output_area:
-                logger.info("[GUI] Running fragmentation and retrosynthesis...")
+                logger.info("[GUI] Running retrosynthesis...")
                 retro_tool.fragment_retrosynthesis()
                 retro_solution = RetrosynthesisSolution(retro_tool)
                 retro_solution.fill_solutions()
@@ -164,16 +170,6 @@ class GuiController:
             self.state.retro_tool = retro_tool
             with self.output_area:
                 logger.info("[GUI] Retrosynthesis complete. Ready to display solutions and browse fragment SMILES.")
-
-            self.fragment_comb_dropdown.options = []
-            self.fragment_comb_dropdown.value = None
-            self.fragment_comb_dropdown.disabled = True
-            self.prev_smiles_button.disabled = True
-            self.next_smiles_button.disabled = True
-            self.smiles_pagination_label.value = "0 of 0"
-            self.smiles_display_area.clear_output(wait=False)
-            with self.smiles_display_area:
-                logger.info("[GUI] Display solutions to populate fragment combinations.")
 
         except Exception as e:
             with self.output_area:
@@ -284,33 +280,10 @@ class GuiController:
 
     def display_solutions_on_click(self, b: widgets.Button) -> None:
         """Handles the click event for the 'Display Solutions' button."""
-        self.solution_output_area.clear_output(wait=True)
-        logger.debug("[GUI] Attempting to display solutions...")
-        self.image_display_area.clear_output(wait=True)
-
-        try:
-            self.solution_dropdown.unobserve(self.on_solution_select, names="value")
-        except ValueError:
-            pass
-        self.solution_dropdown.options = []
-        self.solution_dropdown.value = None
-        self.solution_dropdown.disabled = True
-        self.state.reset_display_state()
-
-        try:
-            self.fragment_comb_dropdown.unobserve(self.on_fragment_comb_select, names="value")
-        except ValueError:
-            pass
-        self.fragment_comb_dropdown.options = []
-        self.fragment_comb_dropdown.value = None
-        self.fragment_comb_dropdown.disabled = True
-        self.prev_smiles_button.disabled = True
-        self.next_smiles_button.disabled = True
-        self.smiles_pagination_label.value = "0 of 0"
-        self.sort_smiles_button.disabled = True
-        self.smiles_display_area.clear_output(wait=False)
-        with self.smiles_display_area:
-            logger.info("[GUI] Select a solution to view its fragment combinations.")
+        self.reset_ui_outputs()  # Reset UI elements
+        self.state.reset_display_state()  # Reset backend display state
+        with self.solution_output_area:  # Log specifically to solution output area after clear
+            logger.debug("[GUI] Attempting to display solutions...")
 
         retro_solution: RetrosynthesisSolution | None = self.state.retro_solution
         use_filter: bool = self.filter_checkbox.value
