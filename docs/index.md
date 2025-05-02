@@ -11,7 +11,7 @@ You can install the package after cloning the repo:
 ```bash
 uv venv --python 3.11.4
 source .venv/bin/activate
-uv pip install .
+uv pip install -e .
 ```
 
 ### Preprocess Stocks
@@ -47,8 +47,11 @@ retro_solution.fill_solutions()
 all_img = retro_solution.visualize_solutions(retro_solution.solutions)
 
 # visualize first solution or simply run this in a notebook: all_img[0]
-with open("output.png", "wb") as f:
-    f.write(all_img[0].data)
+# with open("output.png", "wb") as f:
+#     f.write(all_img[0].data)
+
+# Or in a python script
+# all_img[0].save("output.png", format="PNG")
 ```
 
 ## Development

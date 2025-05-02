@@ -1,4 +1,6 @@
+import gzip
 import json
+import shutil
 from pathlib import Path
 
 from tqdm import tqdm
@@ -12,6 +14,10 @@ BUYABLES_PATH = DATA_PATH / "buyables"
 PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
 if __name__ == "__main__":
+    logger.info("Decompressing buyables data...")
+    with gzip.open(BUYABLES_PATH / "buyables_all.json.gz", "rb") as f_in:
+        with open(BUYABLES_PATH / "buyables_all.json", "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
     logger.info("Loading buyables data...")
     with open(BUYABLES_PATH / "buyables_all.json", "r") as f:
         buyables = json.load(f)
