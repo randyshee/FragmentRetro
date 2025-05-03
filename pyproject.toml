@@ -1,5 +1,5 @@
 [project]
-name = "fragment"
+name = "fragmentretro"
 version = "0.0.1"
 requires-python = ">=3.12"
 readme = "README.md"
@@ -46,7 +46,7 @@ dev = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-exclude = ["tests", "src/fragmentation/rBRICS.py"]
+exclude = ["tests", "src/fragmentation/r_brics.py"]
 disable_error_code = ["unused-ignore"]
 
 [[tool.mypy.overrides]]
