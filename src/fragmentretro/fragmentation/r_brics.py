@@ -45,7 +45,7 @@
 import copy
 import random
 import re
-from typing import Generator
+from collections.abc import Generator
 
 from rdkit import Chem
 from rdkit.Chem import rdChemReactions as Reactions
@@ -363,12 +363,13 @@ def initialize_bond_matchers(
     for rule_group in reaction_definitions:
         tmp = []
         for env_idx1, env_idx2, bond in rule_group:
-            smarts1 = environments["L%s" % env_idx1]
-            smarts2 = environments["L%s" % env_idx2]
+            smarts1 = environments[f"L{env_idx1}"]
+            smarts2 = environments[f"L{env_idx2}"]
             if "@" in bond:  # Leili
-                patt = "[$(%s)]%s[$(%s)]" % (smarts1, bond, smarts2)
+                patt = f"[$({smarts1})]{bond}[$({smarts2})]"
             else:
-                patt = "[$(%s)]%s;!@[$(%s)]" % (smarts1, bond, smarts2)
+                # patt = "[$(%s)]%s;!@[$(%s)]" % (smarts1, bond, smarts2)
+                patt = f"[$({smarts1})]{bond};!@[$({smarts2})]"
             # patt = '[$(%s)]%s;!@[$(%s)]'%(e1,bType,e2) #original
             patt = Chem.MolFromSmarts(patt)
             tmp.append((env_idx1, env_idx2, bond, patt))
@@ -390,9 +391,11 @@ def init_reactions(
             g2 = re.sub("[a-z,A-Z]", "", env_idx2)
             if "@" not in bond:  # Leili
                 # if 1 == 1:
-                sma = "[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                # sma = "[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                sma = f"[$({smarts1})]{bond};!@[$({smarts2})]>>[{g1}*]-[*:1].[{g2}*]-[*:2]"
             else:
-                sma = "[$(%s):1]%s[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                # sma = "[$(%s):1]%s[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                sma = f"[$({smarts1})]{bond}[$({smarts2})]>>[{g1}*]-[*:1].[{g2}*]-[*:2]"
             smarts_groups.append(sma)
             # sma='[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]'%(r1,bnd,r2,g1,g2) #original
             # gp[j] =sma
@@ -410,10 +413,10 @@ def init_reactions(
     for smarts_group in smarts_groups:
         for smarts in smarts_group:
             reactants, products = smarts.split(">>")
-            smarts = "%s>>%s" % (products, reactants)
+            smarts = f"{products}>>{reactants}"
             rxn = Reactions.ReactionFromSmarts(smarts)
             labels = re.findall(r"\[([0-9]+?)\*\]", products)
-            rxn._matchers = [Chem.MolFromSmiles("[%s*]" % x) for x in labels]
+            rxn._matchers = [Chem.MolFromSmiles(f"[{x}*]") for x in labels]
             reverse_reactions.append(rxn)
 
     return smarts_groups, reactions, reverse_reactions

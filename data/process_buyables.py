@@ -20,7 +20,7 @@ if __name__ == "__main__":
     ):
         shutil.copyfileobj(f_in, f_out)
     logger.info("Loading buyables data...")
-    with open(BUYABLES_PATH / "buyables_all.json", "r") as f:
+    with open(BUYABLES_PATH / "buyables_all.json") as f:
         buyables = json.load(f)
     buyables_smiles = [buyable["smiles"] for buyable in buyables]
 

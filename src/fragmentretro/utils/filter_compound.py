@@ -96,7 +96,7 @@ class CompoundFilter:
         """Loads molecular properties from the JSON file."""
 
         logger.info("[CompoundFilter] Loading mol properties")
-        with open(self.mol_properties_path, "r") as f:
+        with open(self.mol_properties_path) as f:
             mol_properties_list = json.load(f)
 
         self.len_BBs = len(mol_properties_list)
@@ -118,9 +118,7 @@ class CompoundFilter:
         for i, pfp in enumerate(self.pfp_list):
             self.pfp_bit_array[i, pfp] = True
 
-    def filter_compounds(
-        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
-    ) -> FilterIndicesType:
+    def filter_compounds(self, smiles: str, prefiltered_indices: FilterIndicesType | None = None) -> FilterIndicesType:
         """Filters compounds based on a query SMILES string and prefiltered indices.
         Note that dummy atoms have to be replaced by hydrogen atoms so that we can get
         the minimal format for pattern fingerprint processing.
@@ -176,7 +174,7 @@ class CompoundFilter:
         return filtered_indices
 
     def get_filtered_BBs(
-        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
+        self, smiles: str, prefiltered_indices: FilterIndicesType | None = None
     ) -> tuple[FilterIndicesType, BBsType]:
         """Filters building blocks based on a query SMILES string and prefiltered indices.
 

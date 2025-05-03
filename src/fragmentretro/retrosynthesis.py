@@ -21,13 +21,13 @@ class Retrosynthesis:
     def __init__(
         self,
         fragmenter: Fragmenter,
-        original_BBs: Optional[BBsType] = None,
-        mol_properties_path: Optional[Path] = None,
+        original_BBs: BBsType | None = None,
+        mol_properties_path: Path | None = None,
         fpSize: int = 2048,
         parallelize: bool = False,
-        num_cores: Optional[int] = None,
+        num_cores: int | None = None,
         core_factor: int = 10,
-        compound_filter: Optional[CompoundFilter] = None,
+        compound_filter: CompoundFilter | None = None,
     ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
@@ -74,7 +74,7 @@ class Retrosynthesis:
         len_minus_one_invalid_combs = self.invalid_combinations_dict.get(len_comb - 1, [])
         return all(not set(invalid_comb).issubset(set(comb)) for invalid_comb in len_minus_one_invalid_combs)
 
-    def _get_prefiltered_indices(self, comb: CombType) -> Optional[FilterIndicesType]:
+    def _get_prefiltered_indices(self, comb: CombType) -> FilterIndicesType | None:
         """Get prefiltered indices for a given combination.
 
         This method retrieves a list of prefiltered indices based on valid

@@ -14,7 +14,7 @@ class SubstructureMatcher:
         BBs: BBsType,
         useChirality: bool = True,
         parallelize: bool = False,
-        num_cores: Optional[int] = None,
+        num_cores: int | None = None,
         core_factor: int = 10,
     ):
         """

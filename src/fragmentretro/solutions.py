@@ -55,7 +55,7 @@ class RetrosynthesisSolution:
 
     @staticmethod
     def get_solutions(
-        valid_combinations: list[CombType], num_fragments: int, solution_cap: Optional[int] = None
+        valid_combinations: list[CombType], num_fragments: int, solution_cap: int | None = None
     ) -> list[SolutionType]:
         """
         Generates all possible retrosynthesis solutions from a list of valid fragment combinations.
@@ -95,7 +95,7 @@ class RetrosynthesisSolution:
 
         return all_solutions
 
-    def fill_solutions(self, solution_cap: Optional[int] = None) -> None:
+    def fill_solutions(self, solution_cap: int | None = None) -> None:
         """Fill the solutions list with all possible solutions."""
         self.solutions = self.get_solutions(self.valid_combinations, self.num_fragments, solution_cap)
 

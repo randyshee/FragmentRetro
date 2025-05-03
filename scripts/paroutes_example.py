@@ -14,7 +14,7 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
 
 ####### Change this
-with open(PAROUTES_PATH / "n1-stock.txt", "r") as f:
+with open(PAROUTES_PATH / "n1-stock.txt") as f:
     n1_stock = [line.strip() for line in f.readlines()]
 
 with open(PAROUTES_PATH / "n1-targets.txt", "rb") as f:
