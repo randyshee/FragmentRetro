@@ -1,6 +1,8 @@
 [project]
 name = "fragment"
 version = "0.0.1"
+requires-python = ">=3.12"
+readme = "README.md"
 dependencies = [
     "numpy==1.26.4",
     "rdkit==2023.9.3",
@@ -12,6 +14,20 @@ dependencies = [
     "ipywidgets==8.1.6",
     "ipykernel>=6.29.5",
 ]
+authors = [
+    { name = "Yu Shee", email = "yu.shee@yale.edu" },
+    { name = "Anton Morgunov", email = "anton@ischemist.com" },
+]
+license = { text = "MIT" }
+
+[project.urls]
+Homepage = "https://github.com/randyshee/FragmentRetro"
+Issues = "https://github.com/randyshee/FragmentRetro/issues"
+
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
 
 
 [project.optional-dependencies]
@@ -32,32 +48,10 @@ strict = true
 ignore_missing_imports = true
 exclude = ["tests", "src/fragmentation/rBRICS.py"]
 disable_error_code = ["unused-ignore"]
+
 [[tool.mypy.overrides]]
 module = ["rdkit-stubs.*", "rdkit.*"]
 ignore_errors = true
 
 [tool.ruff]
 line-length = 120
-
-[tool.logging]
-version = 1
-disable_existing_loggers = false
-
-[tool.logging.formatters.standard]
-format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-datefmt = "%Y-%m-%d %H:%M:%S"
-
-[tool.logging.handlers.console]
-class = "logging.StreamHandler"
-formatter = "standard"
-stream = "ext://sys.stdout"
-
-[tool.logging.loggers.fragment]
-handlers = ["console"]
-propagate = false
-level = "INFO"
-
-[tool.logging.loggers.app]
-handlers = ["console"]
-propagate = false
-level = "INFO"
