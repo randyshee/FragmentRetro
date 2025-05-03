@@ -215,9 +215,7 @@ class Fragmenter(ABC):
         """
         # check if the combination is a connected subgraph
         subgraph = self.fragment_graph.subgraph(combination)
-        if not nx.is_connected(subgraph):
-            return False
-        return True
+        return nx.is_connected(subgraph)
 
     def get_combination_smiles(self, combination: CombType) -> str:
         """

@@ -3,10 +3,11 @@ import json
 import shutil
 from pathlib import Path
 
+from tqdm import tqdm
+
 from fragmentretro.utils.filter_compound import precompute_properties
 from fragmentretro.utils.helpers import canonicalize_smiles
 from fragmentretro.utils.logging_config import logger
-from tqdm import tqdm
 
 DATA_PATH = Path(__file__).parent
 BUYABLES_PATH = DATA_PATH / "buyables"

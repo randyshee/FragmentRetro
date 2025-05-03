@@ -1,11 +1,12 @@
 import pickle
 from pathlib import Path
 
+from tqdm import tqdm
+
 from fragmentretro.fragmenter import BRICSFragmenter  # or use rBRICSFragmenter
 from fragmentretro.retrosynthesis import Retrosynthesis
 from fragmentretro.solutions import RetrosynthesisSolution
 from fragmentretro.utils.logging_config import logger
-from tqdm import tqdm
 
 DATA_PATH = Path(__name__).parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
