@@ -4,11 +4,10 @@ from typing import cast
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from rdkit import Chem
-from rdkit.Chem import Mol
-
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import AtomMappingType, BondType, CombType
+from rdkit import Chem
+from rdkit.Chem import Mol
 
 
 class Fragmenter(ABC):
@@ -58,16 +57,15 @@ class Fragmenter(ABC):
             frag1 = atom_to_frag.get(atom1)
             frag2 = atom_to_frag.get(atom2)
 
-            if frag1 != frag2 and frag1 is not None and frag2 is not None:
-                if not G.has_edge(frag1, frag2):
-                    G.add_edge(
-                        frag1,
-                        frag2,
-                        bond_type=(type1, type2),
-                        atoms=(atom1, atom2),
-                        edge_index=edge_index,
-                    )
-                    edge_index += 1
+            if (frag1 != frag2) and (frag1 is not None) and (frag2 is not None) and not G.has_edge(frag1, frag2):
+                G.add_edge(
+                    frag1,
+                    frag2,
+                    bond_type=(type1, type2),
+                    atoms=(atom1, atom2),
+                    edge_index=edge_index,
+                )
+                edge_index += 1
 
         return G
 

@@ -2,11 +2,10 @@ import re
 from multiprocessing import Pool, cpu_count
 from typing import Optional, cast
 
-from rdkit import Chem
-from rdkit.Chem.rdchem import Atom
-
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import BBsType
+from rdkit import Chem
+from rdkit.Chem.rdchem import Atom
 
 
 class SubstructureMatcher:

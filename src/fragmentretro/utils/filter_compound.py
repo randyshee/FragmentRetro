@@ -3,10 +3,6 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from rdkit import Chem
-from rdkit.Chem import rdMolDescriptors
-from tqdm import tqdm
-
 from FragmentRetro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import (
@@ -14,6 +10,9 @@ from FragmentRetro.utils.type_definitions import (
     FilterIndicesType,
     MolProperties,
 )
+from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors
+from tqdm import tqdm
 
 
 def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:

@@ -1,3 +1,4 @@
+import contextlib
 import io
 from pathlib import Path
 from typing import cast
@@ -27,17 +28,16 @@ from app.gui.widgets import (
     target_smiles_input,
 )
 from app.logging_config import logger
-from IPython.display import display
-from PIL.Image import Image as PILImage
-from rdkit import Chem
-from rdkit.Chem import Draw
-
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
 from FragmentRetro.utils.helpers import sort_by_heavy_atoms
 from FragmentRetro.utils.type_definitions import CombType, SolutionType
+from IPython.display import display
+from PIL.Image import Image as PILImage
+from rdkit import Chem
+from rdkit.Chem import Draw
 
 
 class GuiController:
@@ -179,10 +179,8 @@ class GuiController:
 
     def update_fragment_comb_dropdown(self, solution: SolutionType | None) -> None:
         """Populates the fragment comb dropdown based on a single solution."""
-        try:
+        with contextlib.suppress(ValueError):
             self.fragment_comb_dropdown.unobserve(self.on_fragment_comb_select, names="value")
-        except ValueError:
-            pass
 
         if solution:
             self.fragment_comb_dropdown.options = [(str(comb), comb) for comb in solution]

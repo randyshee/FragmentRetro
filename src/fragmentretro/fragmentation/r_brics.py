@@ -785,12 +785,10 @@ def BRICSBuild(
                 seedIsR2 = True
             for fragment in fragments:
                 ps = None
-                if fragment.HasSubstructMatch(rxn._matchers[0]):
-                    if seedIsR2:
-                        ps = rxn.RunReactants((fragment, seed))
-                if fragment.HasSubstructMatch(rxn._matchers[1]):
-                    if seedIsR1:
-                        ps = rxn.RunReactants((seed, fragment))
+                if fragment.HasSubstructMatch(rxn._matchers[0]) and seedIsR2:
+                    ps = rxn.RunReactants((fragment, seed))
+                if fragment.HasSubstructMatch(rxn._matchers[1]) and seedIsR1:
+                    ps = rxn.RunReactants((seed, fragment))
                 if ps:
                     for p in ps:
                         if uniquify:
@@ -828,7 +826,6 @@ def reBRICS(fragments: list[Chem.Mol]) -> list[Chem.Mol]:
     breakout = sum(breakable)
     iteri = 0
     while breakout > 0:
-        iii = 0
         newfrags: list[Chem.Mol] = []
         newbreakable: list[int] = []
         for frag in oldfragments:
@@ -850,7 +847,6 @@ def reBRICS(fragments: list[Chem.Mol]) -> list[Chem.Mol]:
             else:
                 newfrags.append(frag)
                 newbreakable.append(0)  # frag contains less than 5 heavy atoms, no longer breakable, criteria #3
-            iii += 1
         oldfragments = newfrags
         breakable = newbreakable
         breakout = sum(newbreakable)

@@ -72,10 +72,7 @@ class Retrosynthesis:
         """
         len_comb = len(comb)
         len_minus_one_invalid_combs = self.invalid_combinations_dict.get(len_comb - 1, [])
-        for invalid_comb in len_minus_one_invalid_combs:
-            if set(invalid_comb).issubset(set(comb)):
-                return False
-        return True
+        return all(not set(invalid_comb).issubset(set(comb)) for invalid_comb in len_minus_one_invalid_combs)
 
     def _get_prefiltered_indices(self, comb: CombType) -> Optional[FilterIndicesType]:
         """Get prefiltered indices for a given combination.
