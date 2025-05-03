@@ -11,7 +11,7 @@ from rdkit.Chem.rdchem import Atom
 class SubstructureMatcher:
     def __init__(
         self,
-        BBs: BBsType = set(),
+        BBs: BBsType,
         useChirality: bool = True,
         parallelize: bool = False,
         num_cores: Optional[int] = None,
@@ -181,7 +181,7 @@ class SubstructureMatcher:
                 results = pool.starmap(
                     self.is_strict_substructure, [(fragment, bb, self.useChirality) for bb in self.BBs]
                 )
-                strict_substructure_BBs = set(bb for bb, result in zip(self.BBs, results) if result)
+                strict_substructure_BBs = set(bb for bb, result in zip(self.BBs, results, strict=False) if result)
 
         else:
             # Fallback to single-threaded execution

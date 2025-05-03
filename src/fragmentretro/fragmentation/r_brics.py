@@ -360,7 +360,7 @@ def initialize_bond_matchers(
     environments: EnvironmentSmartsMap, reaction_definitions: BondCleavageDefinitions
 ) -> BondMatcherList:
     bond_matchers = []
-    for group_idx, rule_group in enumerate(reaction_definitions):
+    for rule_group in reaction_definitions:
         tmp = []
         for env_idx1, env_idx2, bond in rule_group:
             smarts1 = environments["L%s" % env_idx1]
@@ -382,7 +382,7 @@ def init_reactions(
     rule_groups = copy.deepcopy(reaction_definitions)
     smarts_groups = []
     for rule_group in rule_groups:
-        for rule_idx, rule in enumerate(rule_group):
+        for rule in rule_group:
             env_idx1, env_idx2, bond = rule
             smarts1 = environs["L" + env_idx1]
             smarts2 = environs["L" + env_idx2]
@@ -407,8 +407,8 @@ def init_reactions(
 
     reactions = tuple([[Reactions.ReactionFromSmarts(y) for y in x] for x in smarts_groups])
     reverse_reactions = []
-    for group_idx, smarts_group in enumerate(smarts_groups):
-        for smarts_idx, smarts in enumerate(smarts_group):
+    for smarts_group in smarts_groups:
+        for smarts in smarts_group:
             reactants, products = smarts.split(">>")
             smarts = "%s>>%s" % (products, reactants)
             rxn = Reactions.ReactionFromSmarts(smarts)
@@ -492,7 +492,7 @@ def find_brics_bonds(
             random.shuffle(matchers_list)
         else:
             matchers_list = BOND_MATCHERS[group_idx]
-        for i1, i2, bond_type, substruct_mol in matchers_list:
+        for i1, i2, _, substruct_mol in matchers_list:
             if not env_matches["L" + i1] or not env_matches["L" + i2]:
                 continue
             matches = mol.GetSubstructMatches(substruct_mol)
@@ -524,7 +524,7 @@ def find_r_brics_bonds(
             random.shuffle(matchers_list)
         else:
             matchers_list = BOND_MATCHERS_R[group_idx]
-        for i1, i2, bond_type, substruct_mol in matchers_list:
+        for i1, i2, _, substruct_mol in matchers_list:
             if not env_matches["L" + i1] or not env_matches["L" + i2]:
                 continue
             matches = mol.GetSubstructMatches(substruct_mol)
@@ -729,7 +729,7 @@ def r_brics_decompose(
                             prod.pSmi = pSmi
                         if seqOk:
                             matched = True
-                            for nats, prod in prodSeq:
+                            for _, prod in prodSeq:
                                 pSmi = prod.pSmi
                                 # print '\t',nats,pSmi
                                 if pSmi not in allNodes:

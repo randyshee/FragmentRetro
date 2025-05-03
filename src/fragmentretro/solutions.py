@@ -143,7 +143,7 @@ class RetrosynthesisSolution:
             # Convert SMILES to RDKit molecules
             mols = [Chem.MolFromSmiles(smiles) for smiles in all_smiles]
             # Draw molecules in a grid
-            legends = [f"{comb}: {smiles}" for comb, smiles in zip(solution, all_smiles)]
+            legends = [f"{comb}: {smiles}" for comb, smiles in zip(solution, all_smiles, strict=False)]
             img = Draw.MolsToGridImage(mols, molsPerRow=molsPerRow, subImgSize=subImgSize, legends=legends)
             all_img.append(img)
         return all_img
