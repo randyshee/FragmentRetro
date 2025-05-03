@@ -5,7 +5,7 @@ from rdkit.Chem.BRICS import BreakBRICSBonds, FindBRICSBonds
 
 from fragmentretro.fragmentation.r_brics import break_r_brics_bonds, find_brics_bonds
 from fragmentretro.fragmenter_base import Fragmenter
-from fragmentretro.utils.type_definitions import BondType
+from fragmentretro.typing import BondType
 
 
 class BRICSFragmenter(Fragmenter):

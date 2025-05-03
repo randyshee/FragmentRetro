@@ -37,8 +37,8 @@ from fragmentretro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from fragmentretro.fragmenter_base import Fragmenter
 from fragmentretro.retrosynthesis import Retrosynthesis
 from fragmentretro.solutions import RetrosynthesisSolution
+from fragmentretro.typing import CombType, SolutionType
 from fragmentretro.utils.helpers import sort_by_heavy_atoms
-from fragmentretro.utils.type_definitions import CombType, SolutionType
 
 
 class GuiController:

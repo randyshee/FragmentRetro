@@ -5,8 +5,8 @@ from rdkit import Chem
 from rdkit.Chem import Draw
 
 from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.typing import CombType, SolutionType
 from fragmentretro.utils.logging_config import logger
-from fragmentretro.utils.type_definitions import CombType, SolutionType
 
 
 class RetrosynthesisSolution:

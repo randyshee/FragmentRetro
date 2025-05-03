@@ -2,7 +2,7 @@ from PIL.Image import Image as PILImage  # For type hinting
 
 from fragmentretro.retrosynthesis import Retrosynthesis
 from fragmentretro.solutions import RetrosynthesisSolution
-from fragmentretro.utils.type_definitions import CombType, SolutionType
+from fragmentretro.typing import CombType, SolutionType
 
 
 class AppState:

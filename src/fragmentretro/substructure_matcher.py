@@ -5,8 +5,8 @@ from typing import cast
 from rdkit import Chem
 from rdkit.Chem.rdchem import Atom
 
+from fragmentretro.typing import BBsType
 from fragmentretro.utils.logging_config import logger
-from fragmentretro.utils.type_definitions import BBsType
 
 
 class SubstructureMatcher:
