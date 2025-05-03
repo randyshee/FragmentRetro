@@ -68,3 +68,13 @@ lint.ignore = [
     "SIM108", # disagree w/ https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp/
 ]
 exclude = ["tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["E501"] # Ignore line length in tests
+
+[tool.coverage.run]
+omit = [
+    # omit basis set files
+    "*/fragmentretro/app/**/*.py",
+    "*/__init__.py",
+]
