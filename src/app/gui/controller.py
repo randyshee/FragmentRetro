@@ -33,6 +33,7 @@ from app.gui.widgets import (
 )
 from app.logging_config import logger
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
+from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.solutions import RetrosynthesisSolution
 from FragmentRetro.utils.helpers import sort_by_heavy_atoms
@@ -65,7 +66,7 @@ class GuiController:
         self.next_smiles_button = next_smiles_button
         self.sort_smiles_button = sort_smiles_button
 
-    def register_event_handlers(self):
+    def register_event_handlers(self) -> None:
         """Connects widget events to controller methods."""
         self.parallelize_checkbox.observe(self.handle_parallelize_change, names="value")
         self.filter_checkbox.observe(self.handle_filter_change, names="value")
@@ -138,6 +139,7 @@ class GuiController:
                 return
         try:
             logger.info("[GUI] Running fragmentation...")
+            fragmenter: Fragmenter | None = None
             if fragmenter_name == "BRICSFragmenter":
                 fragmenter = BRICSFragmenter(target)
             elif fragmenter_name == "rBRICSFragmenter":

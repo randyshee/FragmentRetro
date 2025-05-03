@@ -56,7 +56,7 @@ output_area = widgets.Output()
 
 # --- Solution Display Widgets ---
 # Add Filter checkbox
-filter_checkbox = widgets.Checkbox(value=False, description="Filter", indent=False)
+filter_checkbox = widgets.Checkbox(value=False, description="Filter Solutions (by fragment count):", indent=False)
 
 fragment_count_input = widgets.IntText(
     value=None,
