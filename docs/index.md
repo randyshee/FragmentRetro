@@ -9,7 +9,7 @@ FragmentRetro is a fragment-based retrosynthetic method with quadratic complexit
 You can install the package after cloning the repo:
 
 ```bash
-uv venv --python 3.11.4
+uv venv
 source .venv/bin/activate
 uv pip install -e .
 ```
@@ -29,7 +29,7 @@ Here's a quick example to obtain retrosynthesis solutions:
 
 ```python
 from pathlib import Path
-from fragmentretro.fragmenter import BRICSFragmenter  # or rBRICSFragmenter
+from fragmentretro.fragmenter import rBRICSFragmenter  # or BRICSFragmenter
 from fragmentretro.retrosynthesis import Retrosynthesis
 from fragmentretro.solutions import RetrosynthesisSolution
 
@@ -39,7 +39,7 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 JSON_PRECOMPUTE_PATH = PRECOMPUTE_PATH / "n1_stock_properties.json"
 
 target = "COc1ccc(F)c(-c2ccc(COc3cccc(C(CC(=O)O)C4CC4)c3)nc2CC(C)(C)C)c1"
-fragmenter = BRICSFragmenter(target) # or rBRICSFragmenter
+fragmenter = rBRICSFragmenter(target) # or BRICSFragmenter
 retro_tool = Retrosynthesis(fragmenter, original_BBs=None, mol_properties_path=JSON_PRECOMPUTE_PATH)
 retro_tool.fragment_retrosynthesis()
 retro_solution = RetrosynthesisSolution(retro_tool)
@@ -81,7 +81,7 @@ app = display_gui(smiles="CCNCC")
 We welcome any contributions, feel free to clone the repo and create a PR. We recommend using [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
 ```bash
-uv venv --python 3.11.4
+uv venv
 source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```
