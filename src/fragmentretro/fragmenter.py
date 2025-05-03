@@ -1,9 +1,9 @@
 """Module for fragmenting molecules using BRICS (add other algorithms later)."""
 
+from fragmentation.rBRICS import BreakrBRICSBonds, FindrBRICSBonds
 from rdkit.Chem import Mol
 from rdkit.Chem.BRICS import BreakBRICSBonds, FindBRICSBonds
 
-from fragmentation.rBRICS import BreakrBRICSBonds, FindrBRICSBonds
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.utils.type_definitions import BondType
 

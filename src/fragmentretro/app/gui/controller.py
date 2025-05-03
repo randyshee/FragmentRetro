@@ -3,11 +3,6 @@ from pathlib import Path
 from typing import cast
 
 import ipywidgets as widgets
-from IPython.display import display
-from PIL.Image import Image as PILImage
-from rdkit import Chem
-from rdkit.Chem import Draw
-
 from app.gui.state import AppState
 from app.gui.widgets import (
     core_factor_input,
@@ -32,6 +27,11 @@ from app.gui.widgets import (
     target_smiles_input,
 )
 from app.logging_config import logger
+from IPython.display import display
+from PIL.Image import Image as PILImage
+from rdkit import Chem
+from rdkit.Chem import Draw
+
 from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.retrosynthesis import Retrosynthesis

@@ -1,9 +1,8 @@
-from IPython.display import display
-
 from app.gui.controller import GuiController
 from app.gui.layout import gui_layout
 from app.gui.state import AppState
 from app.gui.widgets import target_smiles_input
+from IPython.display import display
 
 
 # --- Main Function to Display GUI ---

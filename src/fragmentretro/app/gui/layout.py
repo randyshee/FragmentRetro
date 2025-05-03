@@ -1,5 +1,4 @@
 import ipywidgets as widgets
-
 from app.gui.widgets import (
     core_factor_input,
     display_button,

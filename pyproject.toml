@@ -55,3 +55,16 @@ ignore_errors = true
 
 [tool.ruff]
 line-length = 120
+# lint.select = [
+#     "E",   # pycodestyle
+#     "F",   # Pyflakes
+#     "UP",  # pyupgrade
+#     "B",   # flake8-bugbear
+#     "SIM", # flake8-simplify
+#     "I",   # isort
+# ]
+# lint.ignore = [
+#     "E501",   # o respect fmt off blocks
+#     "SIM108", # disagree w/ https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp/
+# ]
+# exclude = ["tests"]
