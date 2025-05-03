@@ -32,14 +32,14 @@ package-dir = { "" = "src" }
 
 [project.optional-dependencies]
 dev = [
-    "mkdocs==1.6.1",
-    "mkdocstrings-python==1.12.2",
-    "mkdocs-material==9.5.49",
     "mypy-extensions==1.0.0",
     "ruff>=0.11.8",
     "mypy>=1.15.0",
     "pre-commit>=4.2.0",
     "pytest>=8.3.5",
+    "mkdocs>=1.6.1",
+    "mkdocstrings-python>=1.16.10",
+    "mkdocs-material>=9.6.12",
 ]
 
 [tool.mypy]

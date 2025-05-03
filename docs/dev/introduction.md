@@ -2,12 +2,18 @@
 
 ## Development
 
-If you need other packages to run your features, you must specify the dependency in [pyproject.toml](./pyproject.toml) and the version used.
+If you need other packages to run your features, you must specify the dependency in `pyproject.toml` and the version used. If you run
+
+```bash
+uv add package
+```
+
+pyproject.toml will be updated automatically.
 
 ### Set Up
 
 ```bash
-uv venv --python 3.11.4
+uv venv
 ```
 
 which will create a new virtual environment (in the folder `venv` which is already gitignored).
@@ -18,7 +24,7 @@ Activate the environment:
 source .venv/bin/activate
 ```
 
-and install all dependencies (specified in [pyproject.toml](./pyproject.toml)):
+and install all dependencies (specified in `pyproject.toml`):
 
 ```bash
 uv pip install -e ".[dev]"
@@ -33,19 +39,14 @@ uv pip install -e ".[dev]"
 
 #### Pre-Commits
 
-After `pre-commit install`, each time you try to make a commit, the system will automatically check for:
-
-- linting errors (using [ruff](https://github.com/astral-sh/ruff))
-- formatting (using [black](https://github.com/psf/black))
-- import sorting (using [isort](https://github.com/pycqa/isort/)) - this is arguably the least necessary thing, but once you have it as a pre-commit hook, you forget it even exists.
+After `pre-commit install`, each time you try to make a commit, the system will automatically check for formatting and linting errors (using [ruff](https://github.com/astral-sh/ruff))
 
 > mypy from pre-commit hooks currently disabled just so that you can push commits even with failing mypy so that we can discuss it on GitHub and see how it can be fixed
 
-If any of the checks above (ruff/black/isort) fail, the system will try to fix them automatically, so in most cases you'll only need to run `git add .` and try to commit again. If you want run the checks manually, you can do:
+If any of the checks above (ruff) fail, the system will try to fix them automatically, so in most cases you'll only need to run `git add .` and try to commit again. If you want run the checks manually, you can do:
 
 - `ruff check`. If there are errors, most of the time they can be fixed by `ruff check --fix`. Some errors will need to be fixed manually though.
-- `black .` (notice the dot). This simply applies black formatting to the whole repo.
-- `isort --profile black .` (notice the dot). This applies import sorting. You almost never need to run black/isort manually, pre-commit will take care of that.
+- `ruff format` to format the code according to the [Black](https://black.readthedocs.io/en/stable/) style guide. 
 
 #### MyPy
 
