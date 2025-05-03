@@ -6,13 +6,13 @@ from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from tqdm import tqdm
 
-from fragmentretro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
-from fragmentretro.utils.logging_config import logger
-from fragmentretro.utils.type_definitions import (
+from fragmentretro.typing import (
     BBsType,
     FilterIndicesType,
     MolProperties,
 )
+from fragmentretro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
+from fragmentretro.utils.logging_config import logger
 
 
 def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
