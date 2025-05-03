@@ -41,9 +41,9 @@ class Retrosynthesis:
         self.last_stage_combs: list[CombType]
 
         if original_BBs is not None and mol_properties_path is not None:
-            logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
+            logger.warn("Both original_BBs and mol_properties_path are provided. Will be using mol_properties_path.")
         elif mol_properties_path is not None and compound_filter is not None:
-            logger.warn("Both mol_properties_path and compound_filter are provided. " "Will be using compound_filter.")
+            logger.warn("Both mol_properties_path and compound_filter are provided. Will be using compound_filter.")
         elif original_BBs is None and mol_properties_path is None and compound_filter is None:
             logger.critical("Either original_BBs, mol_properties_path, or compound_filter must be provided.")
         if mol_properties_path is not None:

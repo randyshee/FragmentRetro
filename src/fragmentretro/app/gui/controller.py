@@ -365,7 +365,7 @@ class GuiController:
                 logger.info(f"[GUI] Generated {num_valid_images} image(s). Use dropdown to view.")
 
             dropdown_options: list[tuple[str, int]] = [
-                (f"Solution {original_indices[i]+1}", i) for i in range(num_valid_images) if original_indices[i] != -1
+                (f"Solution {original_indices[i] + 1}", i) for i in range(num_valid_images) if original_indices[i] != -1
             ]
             self.solution_dropdown.options = dropdown_options
             self.solution_dropdown.value = 0 if dropdown_options else None

@@ -124,7 +124,7 @@ class SubstructureMatcher:
                 # remove chirality information (in re group \1) for atoms with dummy neighbors
                 smarts_with_indices = re.sub(
                     rf"\[\#{atomic_num}(@*)&H{num_hydrogens}:{idx}\]",
-                    rf"[#{atomic_num}&H{num_hydrogens},#{atomic_num}&H{num_hydrogens+1}:{idx}]",
+                    rf"[#{atomic_num}&H{num_hydrogens},#{atomic_num}&H{num_hydrogens + 1}:{idx}]",
                     smarts_with_indices,
                 )
                 logger.debug("smarts_with_indices: %s", smarts_with_indices)
