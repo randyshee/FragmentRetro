@@ -5,7 +5,7 @@
 You will only have to define the abstract methods to find fragmentation bonds and to break these bonds. Other methods like building fragment graph (`networkx` graph), visualization, and how to get SMILES string given a combination of fragments are provided in this base class.
 
 ```python
-from FragmentRetro.fragmenter_base import Fragmenter
+from fragmentretro.fragmenter_base import Fragmenter
 
 # suppose you have a new way to find and break bonds: `FindTestBonds` and `BreakTestBonds`
 

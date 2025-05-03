@@ -1,11 +1,12 @@
 from itertools import chain
 
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import CombType, SolutionType
 from PIL import Image
 from rdkit import Chem
 from rdkit.Chem import Draw
+
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.utils.logging_config import logger
+from fragmentretro.utils.type_definitions import CombType, SolutionType
 
 
 class RetrosynthesisSolution:

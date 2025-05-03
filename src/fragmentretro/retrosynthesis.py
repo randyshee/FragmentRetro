@@ -1,12 +1,12 @@
 from pathlib import Path
 from typing import cast
 
-from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.substructure_matcher import SubstructureMatcher
-from FragmentRetro.utils.filter_compound import CompoundFilter
-from FragmentRetro.utils.helpers import remove_indices_before_dummy
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import (
+from fragmentretro.fragmenter_base import Fragmenter
+from fragmentretro.substructure_matcher import SubstructureMatcher
+from fragmentretro.utils.filter_compound import CompoundFilter
+from fragmentretro.utils.helpers import remove_indices_before_dummy
+from fragmentretro.utils.logging_config import logger
+from fragmentretro.utils.type_definitions import (
     BBsType,
     CombBBsDictType,
     CombFilterIndicesDictType,

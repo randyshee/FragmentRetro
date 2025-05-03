@@ -10,7 +10,7 @@ In a Jupyter notebook:
 from app.interface import display_gui
 
 import logging
-from FragmentRetro.utils.logging_config import logger as fragment_logger
+from fragmentretro.utils.logging_config import logger as fragment_logger
 from app.logging_config import logger as app_logger
 
 # Adjust the logging levels to control the verbosity of the logs or to suppress them

@@ -3,8 +3,7 @@
 from pathlib import Path
 
 import pytest
-
-from FragmentRetro.substructure_matcher import SubstructureMatcher
+from fragmentretro.substructure_matcher import SubstructureMatcher
 
 DATA_PATH = Path(__file__).parent.parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
@@ -246,7 +245,7 @@ def test_is_strict_substructure(case_number, fragment_smiles, molecule_smiles_li
     ],
 )
 def test_parallel_get_substructure_BBs(fragment_smiles):
-    with open(PAROUTES_PATH / "n1-stock.txt", "r") as f:
+    with open(PAROUTES_PATH / "n1-stock.txt") as f:
         n1_stock = [line.strip() for line in f.readlines()]
     n1_stock_subset = set(n1_stock[:500])
     no_parallel_matcher = SubstructureMatcher(n1_stock_subset, parallelize=False)

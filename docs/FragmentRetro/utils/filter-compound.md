@@ -8,7 +8,7 @@ The `precompute_properties` function computes properties for a large set of comp
 
 ```python
 from pathlib import Path
-from FragmentRetro.utils.filter_compound import precompute_properties
+from fragmentretro.utils.filter_compound import precompute_properties
 
 DATA_PATH = Path(__file__).parent.parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
@@ -27,8 +27,8 @@ precompute_properties(n1_stock_subset, MOL_PROPERTIES_PATH, fpSize=2048)
 The `CompoundFilter` class is used to initialize a filter, and the `get_filtered_BBs` method retrieves the screened building blocks. The following example demonstrates filtering using a specific fragment SMILES string.
 
 ```python
-from FragmentRetro.utils.filter_compound import CompoundFilter
-from FragmentRetro.utils.helpers import replace_dummy_atoms_regex
+from fragmentretro.utils.filter_compound import CompoundFilter
+from fragmentretro.utils.helpers import replace_dummy_atoms_regex
 
 fragment_smiles_list = ["[5*]N1CCC[C@@]1([13*])C", "[4*]CCN[5*]", "[4*]C[8*]", "[*]C[*]", "[3*]O[3*]"]
 fragment_smiles = fragment_smiles_list[1]

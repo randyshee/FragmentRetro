@@ -28,16 +28,17 @@ from app.gui.widgets import (
     target_smiles_input,
 )
 from app.logging_config import logger
-from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
-from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
-from FragmentRetro.utils.helpers import sort_by_heavy_atoms
-from FragmentRetro.utils.type_definitions import CombType, SolutionType
 from IPython.display import display
 from PIL.Image import Image as PILImage
 from rdkit import Chem
 from rdkit.Chem import Draw
+
+from fragmentretro.fragmenter import BRICSFragmenter, rBRICSFragmenter
+from fragmentretro.fragmenter_base import Fragmenter
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
+from fragmentretro.utils.helpers import sort_by_heavy_atoms
+from fragmentretro.utils.type_definitions import CombType, SolutionType
 
 
 class GuiController:

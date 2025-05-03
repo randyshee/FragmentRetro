@@ -4,10 +4,11 @@ from typing import cast
 
 import matplotlib.pyplot as plt
 import networkx as nx
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import AtomMappingType, BondType, CombType
 from rdkit import Chem
 from rdkit.Chem import Mol
+
+from fragmentretro.utils.logging_config import logger
+from fragmentretro.utils.type_definitions import AtomMappingType, BondType, CombType
 
 
 class Fragmenter(ABC):
