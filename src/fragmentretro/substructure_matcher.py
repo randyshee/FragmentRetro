@@ -1,6 +1,6 @@
 import re
 from multiprocessing import Pool, cpu_count
-from typing import Optional, cast
+from typing import cast
 
 from FragmentRetro.utils.logging_config import logger
 from FragmentRetro.utils.type_definitions import BBsType

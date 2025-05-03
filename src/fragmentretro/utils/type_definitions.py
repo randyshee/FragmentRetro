@@ -1,6 +1,6 @@
 """Type definitions for FragmentRetro package."""
 
-from typing import TypeAlias, TypedDict
+from typing import TypedDict
 
 # Bond type (from BRICS): ((atom1_idx, atom2_idx), (type1, type2))
 # Example: ((3, 2), ('3', '4'))

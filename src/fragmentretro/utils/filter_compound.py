@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from FragmentRetro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex

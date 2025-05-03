@@ -1,5 +1,4 @@
 from itertools import chain
-from typing import Optional
 
 from FragmentRetro.retrosynthesis import Retrosynthesis
 from FragmentRetro.utils.logging_config import logger

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 from FragmentRetro.fragmenter_base import Fragmenter
 from FragmentRetro.substructure_matcher import SubstructureMatcher

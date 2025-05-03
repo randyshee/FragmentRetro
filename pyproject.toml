@@ -57,7 +57,7 @@ ignore_errors = true
 line-length = 120
 lint.select = [
 #     "E",   # pycodestyle
-#     "F",   # Pyflakes
+    "F",   # Pyflakes
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
     "SIM", # flake8-simplify
