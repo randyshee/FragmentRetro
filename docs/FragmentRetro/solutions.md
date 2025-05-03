@@ -32,7 +32,7 @@ for i, img in enumerate(images):
 
 ## Source Code
 
-::: FragmentRetro.solutions
+::: fragmentretro.solutions
     handler: python
     options:
       show_root_heading: true

@@ -16,7 +16,7 @@ fragmenter.visualize(figsize=(20, 10), verbose=False, with_indices=True)
 
 ## Source Code
 
-::: FragmentRetro.fragmenter
+::: fragmentretro.fragmenter
     handler: python
     options:
       show_root_heading: true

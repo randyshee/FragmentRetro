@@ -26,7 +26,7 @@ app = display_gui(smiles="CCNCC")
 
 ## Source Code
 
-::: app.interface
+::: fragmentretro.app.interface
     handler: python
     options:
       show_root_heading: true
@@ -34,7 +34,7 @@ app = display_gui(smiles="CCNCC")
       members:
         - display_gui
 
-::: app.gui.controller
+::: fragmentretro.app.gui.controller
     handler: python
     options:
       show_root_heading: true

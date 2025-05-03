@@ -40,7 +40,7 @@ print(f"SMILES without indices: {smiles_without_indices}")
 
 ## Source Code
 
-::: FragmentRetro.utils.helpers
+::: fragmentretro.utils.helpers
     handler: python
     options:
       show_root_heading: true

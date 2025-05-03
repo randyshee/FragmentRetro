@@ -1,6 +1,6 @@
 # Type Definitions
 
-[type_definitions.py](/src/FragmentRetro/type_definitions.py) is a good place to store your type definitions to make code clean and pass mypy tests.
+[typing.py](/src/fragmentretro/typing.py) is a good place to store your type definitions to make code clean and pass mypy tests.
 
 ## Example Usage
 
@@ -9,7 +9,7 @@ def _find_fragmentation_bonds(mol: Mol) -> list[BondType]:
     return list(FindBRICSBonds(mol))
 ```
 
-where `BondType` is defined in [type_definitions.py](/src/FragmentRetro/utils/type_definitions.py) as:
+where `BondType` is defined in [typing.py](/src/fragmentretro/typing.py) as:
 
 ```python
 BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
@@ -17,7 +17,7 @@ BondType: TypeAlias = tuple[tuple[int, int], tuple[str, str]]
 
 ## Source Code
 
-::: FragmentRetro.utils.type_definitions
+::: fragmentretro.typing
     handler: python
     options:
       show_root_heading: true

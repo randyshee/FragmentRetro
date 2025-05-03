@@ -16,7 +16,7 @@ print(SubstructureMatcher.is_strict_substructure(fragment_smiles, molecule_smile
 
 ## Source Code
 
-::: FragmentRetro.substructure_matcher
+::: fragmentretro.substructure_matcher
     handler: python
     options:
       show_root_heading: true

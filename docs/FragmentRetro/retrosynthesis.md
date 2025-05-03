@@ -44,7 +44,7 @@ retro_solution.visualize_solutions(retro_solution.solutions, molsPerRow=4)[-1]
 
 ## Source Code
 
-::: FragmentRetro.retrosynthesis
+::: fragmentretro.retrosynthesis
     handler: python
     options:
       show_root_heading: true

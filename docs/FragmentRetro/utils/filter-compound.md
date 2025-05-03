@@ -39,7 +39,7 @@ filtered_indices, filtered_BBs = compound_filter.get_filtered_BBs(fragment_smile
 
 ## Source Code
 
-::: FragmentRetro.utils.filter_compound
+::: fragmentretro.utils.filter_compound
     handler: python
     options:
       show_root_heading: true

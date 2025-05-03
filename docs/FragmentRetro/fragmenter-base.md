@@ -28,7 +28,7 @@ class TestFragmenter(Fragmenter):
 
 ## Source Code
 
-::: FragmentRetro.fragmenter_base
+::: fragmentretro.fragmenter_base
     handler: python
     options:
       show_root_heading: true
