@@ -379,10 +379,11 @@ def initialize_bond_matchers(
 
 def init_reactions(
     environments: EnvironmentSmartsMap, reaction_definitions: BondCleavageDefinitions
-) -> tuple[list[SmartsPattern], ReactionGroups, ReactionList]:
+) -> tuple[list[list[SmartsPattern]], ReactionGroups, ReactionList]:
     rule_groups = copy.deepcopy(reaction_definitions)
     smarts_groups = []
     for rule_group in rule_groups:
+        new_rule_group = []
         for rule in rule_group:
             env_idx1, env_idx2, bond = rule
             smarts1 = environs["L" + env_idx1]
@@ -396,9 +397,10 @@ def init_reactions(
             else:
                 # sma = "[$(%s):1]%s[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
                 sma = f"[$({smarts1})]{bond}[$({smarts2})]>>[{g1}*]-[*:1].[{g2}*]-[*:2]"
-            smarts_groups.append(sma)
+            new_rule_group.append(sma)
             # sma='[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]'%(r1,bnd,r2,g1,g2) #original
             # gp[j] =sma
+        smarts_groups.append(new_rule_group)
 
     for smarts_group in smarts_groups:
         for smarts in smarts_group:

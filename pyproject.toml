@@ -45,7 +45,7 @@ dev = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-exclude = ["tests", "src/fragmentation/r_brics.py"]
+exclude = ["tests"]
 disable_error_code = ["unused-ignore"]
 
 [[tool.mypy.overrides]]
