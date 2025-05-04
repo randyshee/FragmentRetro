@@ -145,7 +145,7 @@ class Retrosynthesis:
                 return filtered_BBs
             else:
                 possible_BBs = self._get_possible_BBs_for_comb_no_filter(comb)
-                logger.info(
+                logger.debug(
                     f"[Retrosynthesis] Number of possible BBs (when no filter) for {comb_smiles}: {len(possible_BBs)}"
                 )
                 return possible_BBs.intersection(filtered_BBs)
@@ -175,7 +175,7 @@ class Retrosynthesis:
             combs = list(self.fragmenter.get_length_n_combinations_from_last_stage(self.last_stage_combs))
             self.last_stage_combs = combs
 
-        logger.info(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
         # check invalid comb and filter out effective comb
         effective_combs, invalid_combs = [], []
         for comb in combs:
@@ -184,14 +184,14 @@ class Retrosynthesis:
             else:
                 invalid_combs.append(comb)
         self.invalid_combinations_dict[stage] = invalid_combs
-        logger.info(f"[Retrosynthesis] Stage {stage}: {len(effective_combs)} effective combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {len(effective_combs)} effective combinations")
 
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
             fragment_smiles_without_indices = remove_indices_before_dummy(fragment_smiles)
             # get building blocks for comb
             if fragment_smiles_without_indices in self.fragment_bbs_dict:
-                logger.info(
+                logger.debug(
                     f"[Retrosynthesis] Fragment {fragment_smiles} ( {fragment_smiles_without_indices} ) already processed"
                 )
                 previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles_without_indices]
@@ -199,7 +199,7 @@ class Retrosynthesis:
                 self.comb_filter_indices_dict[comb] = self.comb_filter_indices_dict[previous_comb]
             else:
                 possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
-                logger.info(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
+                logger.debug(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
                 comb_matcher = SubstructureMatcher(
                     possible_comb_BBs,
                     parallelize=self.parallelize,
@@ -217,8 +217,8 @@ class Retrosynthesis:
                 self.invalid_combinations_dict[stage].append(comb)
         stage_valid_count = len(self.valid_combinations_dict[stage])
         stage_invalid_count = len(self.invalid_combinations_dict[stage])
-        logger.info(f"[Retrosynthesis] Stage {stage}: {stage_valid_count} valid combinations")
-        logger.info(f"[Retrosynthesis] Stage {stage}: {stage_invalid_count} invalid combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {stage_valid_count} valid combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {stage_invalid_count} invalid combinations")
         return stage_valid_count, stage_invalid_count
 
     def fragment_retrosynthesis(self) -> StageCombDictType:
@@ -236,7 +236,7 @@ class Retrosynthesis:
         for stage in range(1, self.num_fragments + 1):
             stage_valid_count, stage_invalid_count = self._retro_stage(stage)
             if stage_valid_count == 0 or (stage == 1 and stage_invalid_count > 0):
-                logger.info(f"[Retrosynthesis] Stopped at stage {stage}")
+                logger.debug(f"[Retrosynthesis] Stopped at stage {stage}")
                 break
         if self.use_filter:
             # save memory

@@ -134,17 +134,17 @@ class Fragmenter(ABC):
         plt.axis("off")
         plt.show()
 
-        logger.info("[Fragmenter] \nNode data:")
+        logger.debug("[Fragmenter] \nNode data:")
         for node in self.fragment_graph.nodes():
-            logger.info(f"[Fragmenter] \nNode {node}:")
-            logger.info(f"[Fragmenter] SMILES: {self.fragment_graph.nodes[node]['smiles']}")
-            logger.info(f"[Fragmenter] Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}")
+            logger.debug(f"[Fragmenter] \nNode {node}:")
+            logger.debug(f"[Fragmenter] SMILES: {self.fragment_graph.nodes[node]['smiles']}")
+            logger.debug(f"[Fragmenter] Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}")
 
-        logger.info("[Fragmenter] \nEdge data:")
+        logger.debug("[Fragmenter] \nEdge data:")
         for u, v, data in self.fragment_graph.edges(data=True):
-            logger.info(f"[Fragmenter] \nEdge {data['edge_index']} ({u}-{v}):")
-            logger.info(f"[Fragmenter] Bond type: {data['bond_type']}")
-            logger.info(f"[Fragmenter] Atoms: {data['atoms']}")
+            logger.debug(f"[Fragmenter] \nEdge {data['edge_index']} ({u}-{v}):")
+            logger.debug(f"[Fragmenter] Bond type: {data['bond_type']}")
+            logger.debug(f"[Fragmenter] Atoms: {data['atoms']}")
 
     def get_length_n_combinations(self, n: int) -> set[CombType]:
         """

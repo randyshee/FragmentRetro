@@ -90,7 +90,7 @@ class RetrosynthesisSolution:
                 solution, remaining_fragments, i + 1, valid_combinations, all_solutions
             )
             if solution_cap and len(all_solutions) >= solution_cap:
-                logger.info(f"[RetrosynthesisSolution] Solution count capped at {solution_cap}")
+                logger.debug(f"[RetrosynthesisSolution] Solution count capped at {solution_cap}")
                 return all_solutions[:solution_cap]
 
         return all_solutions
@@ -137,9 +137,9 @@ class RetrosynthesisSolution:
         """
         all_img = []
         for solution in solutions:
-            logger.info(f"[RetrosynthesisSolution] Solution: {solution}")
+            logger.debug(f"[RetrosynthesisSolution] Solution: {solution}")
             all_smiles = self.get_solution_smiles(solution)
-            logger.info(f"[RetrosynthesisSolution] SMILES: {all_smiles}")
+            logger.debug(f"[RetrosynthesisSolution] SMILES: {all_smiles}")
             # Convert SMILES to RDKit molecules
             mols = [Chem.MolFromSmiles(smiles) for smiles in all_smiles]
             # Draw molecules in a grid

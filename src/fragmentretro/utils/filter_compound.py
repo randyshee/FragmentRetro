@@ -95,7 +95,7 @@ class CompoundFilter:
     def _load_mol_properties(self) -> None:
         """Loads molecular properties from the JSON file."""
 
-        logger.info("[CompoundFilter] Loading mol properties")
+        logger.debug("[CompoundFilter] Loading mol properties")
         with open(self.mol_properties_path) as f:
             mol_properties_list = json.load(f)
 
@@ -105,7 +105,7 @@ class CompoundFilter:
         self.num_rings_list = [props["num_rings"] for props in mol_properties_list]
         self.pfp_len_list = [len(props["pfp"]) for props in mol_properties_list]
         self.pfp_list = [props["pfp"] for props in mol_properties_list]
-        logger.info("[CompoundFilter] Finished loading mol properties")
+        logger.debug("[CompoundFilter] Finished loading mol properties")
 
     def _create_numpy_arrays(self) -> None:
         """Creates NumPy arrays for faster filtering."""
@@ -137,7 +137,7 @@ class CompoundFilter:
             print(f"Invalid SMILES: {e}")
             return []
 
-        logger.info(f"[CompoundFilter] Filtering BBs for {no_dummy_smiles} ( {smiles} )")
+        logger.debug(f"[CompoundFilter] Filtering BBs for {no_dummy_smiles} ( {smiles} )")
 
         num_heavy_atoms = mol_properties["num_heavy_atoms"]
         num_rings = mol_properties["num_rings"]
@@ -165,9 +165,9 @@ class CompoundFilter:
             ].tolist()
 
         if prefiltered_indices is None:
-            logger.info(f"[CompoundFilter] Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
+            logger.debug(f"[CompoundFilter] Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
         else:
-            logger.info(
+            logger.debug(
                 f"[CompoundFilter] Originally {len(prefiltered_indices)} BBs, filtered down to {len(filtered_indices)}"
             )
 
