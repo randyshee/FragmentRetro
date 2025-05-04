@@ -47,10 +47,12 @@ import random
 import re
 from collections.abc import Generator
 
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import rdChemReactions as Reactions
 
 from fragmentretro.exceptions import SmartsParsingError
+
+RDLogger.DisableLog("rdApp.*")  # Disable RDKit warning messages
 
 type EnvironmentLabel = str
 type SmartsPattern = str
