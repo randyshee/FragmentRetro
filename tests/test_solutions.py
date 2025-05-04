@@ -1,8 +1,7 @@
 """Tests for solutions."""
 
 import pytest
-
-from FragmentRetro.solutions import RetrosynthesisSolution
+from fragmentretro.solutions import RetrosynthesisSolution
 
 TEST_CASES_FOR_GET_SOLUTIONS = [
     {

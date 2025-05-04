@@ -1,6 +1,8 @@
 [project]
-name = "fragment"
+name = "fragmentretro"
 version = "0.0.1"
+requires-python = ">=3.12"
+readme = "README.md"
 dependencies = [
     "numpy==1.26.4",
     "rdkit==2023.9.3",
@@ -12,52 +14,67 @@ dependencies = [
     "ipywidgets==8.1.6",
     "ipykernel>=6.29.5",
 ]
+authors = [
+    { name = "Yu Shee", email = "yu.shee@yale.edu" },
+    { name = "Anton Morgunov", email = "anton@ischemist.com" },
+]
+license = { text = "MIT" }
+
+[project.urls]
+Homepage = "https://github.com/randyshee/FragmentRetro"
+Issues = "https://github.com/randyshee/FragmentRetro/issues"
+
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
 
 
 [project.optional-dependencies]
 dev = [
-    "mkdocs==1.6.1",
-    "mkdocstrings-python==1.12.2",
-    "mkdocs-material==9.5.49",
-    "pytest==8.3.4",
-    "ruff==0.4.7",
-    "mypy==1.13.0",
-    "isort==5.13.2",
     "mypy-extensions==1.0.0",
-    "pre-commit==4.0.1"
+    "ruff>=0.11.8",
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "pytest>=8.3.5",
+    "mkdocs>=1.6.1",
+    "mkdocstrings-python>=1.16.10",
+    "mkdocs-material>=9.6.12",
+    "pytest-cov>=6.1.1",
 ]
 
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
-exclude = ["tests", "src/fragmentation/rBRICS.py"]
+exclude = ["tests"]
 disable_error_code = ["unused-ignore"]
+
 [[tool.mypy.overrides]]
 module = ["rdkit-stubs.*", "rdkit.*"]
 ignore_errors = true
 
 [tool.ruff]
 line-length = 120
+lint.select = [
+    "E",   # pycodestyle
+    "F",   # Pyflakes
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "I",   # isort
+]
+lint.ignore = [
+    "E501",   # o respect fmt off blocks
+    "SIM108", # disagree w/ https://docs.astral.sh/ruff/rules/if-else-block-instead-of-if-exp/
+]
+exclude = ["tests"]
 
-[tool.logging]
-version = 1
-disable_existing_loggers = false
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["E501"] # Ignore line length in tests
 
-[tool.logging.formatters.standard]
-format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-datefmt = "%Y-%m-%d %H:%M:%S"
-
-[tool.logging.handlers.console]
-class = "logging.StreamHandler"
-formatter = "standard"
-stream = "ext://sys.stdout"
-
-[tool.logging.loggers.fragment]
-handlers = ["console"]
-propagate = false
-level = "INFO"
-
-[tool.logging.loggers.app]
-handlers = ["console"]
-propagate = false
-level = "INFO"
+[tool.coverage.run]
+omit = [
+    # omit basis set files
+    "*/fragmentretro/app/**/*.py",
+    "*/__init__.py",
+]

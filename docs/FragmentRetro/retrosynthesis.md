@@ -5,9 +5,9 @@ The `Retrosynthesis` class identifies all possible retrosynthesis solutions for 
 ## Example Use
 
 ```python
-from FragmentRetro.fragmenter import BRICSFragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
+from fragmentretro.fragmenter import BRICSFragmenter
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
 
 # Define your building block set (SMILES strings)
 original_BBs = set(['Brc1cc(OC)ccc1-n1nccn1',
@@ -44,7 +44,7 @@ retro_solution.visualize_solutions(retro_solution.solutions, molsPerRow=4)[-1]
 
 ## Source Code
 
-::: FragmentRetro.retrosynthesis
+::: fragmentretro.retrosynthesis
     handler: python
     options:
       show_root_heading: true

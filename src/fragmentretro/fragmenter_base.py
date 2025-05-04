@@ -7,8 +7,8 @@ import networkx as nx
 from rdkit import Chem
 from rdkit.Chem import Mol
 
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import AtomMappingType, BondType, CombType
+from fragmentretro.typing import AtomMappingType, BondType, CombType
+from fragmentretro.utils.logging_config import logger
 
 
 class Fragmenter(ABC):
@@ -58,16 +58,15 @@ class Fragmenter(ABC):
             frag1 = atom_to_frag.get(atom1)
             frag2 = atom_to_frag.get(atom2)
 
-            if frag1 != frag2 and frag1 is not None and frag2 is not None:
-                if not G.has_edge(frag1, frag2):
-                    G.add_edge(
-                        frag1,
-                        frag2,
-                        bond_type=(type1, type2),
-                        atoms=(atom1, atom2),
-                        edge_index=edge_index,
-                    )
-                    edge_index += 1
+            if (frag1 != frag2) and (frag1 is not None) and (frag2 is not None) and not G.has_edge(frag1, frag2):
+                G.add_edge(
+                    frag1,
+                    frag2,
+                    bond_type=(type1, type2),
+                    atoms=(atom1, atom2),
+                    edge_index=edge_index,
+                )
+                edge_index += 1
 
         return G
 
@@ -135,17 +134,17 @@ class Fragmenter(ABC):
         plt.axis("off")
         plt.show()
 
-        logger.info("[Fragmenter] \nNode data:")
+        logger.debug("[Fragmenter] \nNode data:")
         for node in self.fragment_graph.nodes():
-            logger.info(f"[Fragmenter] \nNode {node}:")
-            logger.info(f"[Fragmenter] SMILES: {self.fragment_graph.nodes[node]['smiles']}")
-            logger.info(f"[Fragmenter] Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}")
+            logger.debug(f"[Fragmenter] \nNode {node}:")
+            logger.debug(f"[Fragmenter] SMILES: {self.fragment_graph.nodes[node]['smiles']}")
+            logger.debug(f"[Fragmenter] Atom indices: {self.fragment_graph.nodes[node]['atom_indices']}")
 
-        logger.info("[Fragmenter] \nEdge data:")
+        logger.debug("[Fragmenter] \nEdge data:")
         for u, v, data in self.fragment_graph.edges(data=True):
-            logger.info(f"[Fragmenter] \nEdge {data['edge_index']} ({u}-{v}):")
-            logger.info(f"[Fragmenter] Bond type: {data['bond_type']}")
-            logger.info(f"[Fragmenter] Atoms: {data['atoms']}")
+            logger.debug(f"[Fragmenter] \nEdge {data['edge_index']} ({u}-{v}):")
+            logger.debug(f"[Fragmenter] Bond type: {data['bond_type']}")
+            logger.debug(f"[Fragmenter] Atoms: {data['atoms']}")
 
     def get_length_n_combinations(self, n: int) -> set[CombType]:
         """
@@ -216,9 +215,7 @@ class Fragmenter(ABC):
         """
         # check if the combination is a connected subgraph
         subgraph = self.fragment_graph.subgraph(combination)
-        if not nx.is_connected(subgraph):
-            return False
-        return True
+        return cast(bool, nx.is_connected(subgraph))
 
     def get_combination_smiles(self, combination: CombType) -> str:
         """

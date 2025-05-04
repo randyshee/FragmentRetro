@@ -5,7 +5,7 @@ Once you have the fragmentation algorithms such as BRICS, you can get derived cl
 ## Example Use
 
 ```python
-from FragmentRetro.fragmenter import BRICSFragmenter
+from fragmentretro.fragmenter import BRICSFragmenter
 
 smiles = "COc1ccc(-n2nccn2)c(C(=O)N2CCC[C@@]2(C)c2nc3c(C)c(Cl)ccc3[nH]2)c1"
 fragmenter = BRICSFragmenter(smiles)
@@ -16,7 +16,7 @@ fragmenter.visualize(figsize=(20, 10), verbose=False, with_indices=True)
 
 ## Source Code
 
-::: FragmentRetro.fragmenter
+::: fragmentretro.fragmenter
     handler: python
     options:
       show_root_heading: true

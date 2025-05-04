@@ -1,19 +1,18 @@
 import json
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
 from tqdm import tqdm
 
-from FragmentRetro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import (
+from fragmentretro.typing import (
     BBsType,
     FilterIndicesType,
     MolProperties,
 )
+from fragmentretro.utils.helpers import canonicalize_smiles, replace_dummy_atoms_regex
+from fragmentretro.utils.logging_config import logger
 
 
 def get_mol_properties(smiles: str, fpSize: int = 2048) -> MolProperties:
@@ -96,8 +95,8 @@ class CompoundFilter:
     def _load_mol_properties(self) -> None:
         """Loads molecular properties from the JSON file."""
 
-        logger.info("[CompoundFilter] Loading mol properties")
-        with open(self.mol_properties_path, "r") as f:
+        logger.debug("[CompoundFilter] Loading mol properties")
+        with open(self.mol_properties_path) as f:
             mol_properties_list = json.load(f)
 
         self.len_BBs = len(mol_properties_list)
@@ -106,7 +105,7 @@ class CompoundFilter:
         self.num_rings_list = [props["num_rings"] for props in mol_properties_list]
         self.pfp_len_list = [len(props["pfp"]) for props in mol_properties_list]
         self.pfp_list = [props["pfp"] for props in mol_properties_list]
-        logger.info("[CompoundFilter] Finished loading mol properties")
+        logger.debug("[CompoundFilter] Finished loading mol properties")
 
     def _create_numpy_arrays(self) -> None:
         """Creates NumPy arrays for faster filtering."""
@@ -119,9 +118,7 @@ class CompoundFilter:
         for i, pfp in enumerate(self.pfp_list):
             self.pfp_bit_array[i, pfp] = True
 
-    def filter_compounds(
-        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
-    ) -> FilterIndicesType:
+    def filter_compounds(self, smiles: str, prefiltered_indices: FilterIndicesType | None = None) -> FilterIndicesType:
         """Filters compounds based on a query SMILES string and prefiltered indices.
         Note that dummy atoms have to be replaced by hydrogen atoms so that we can get
         the minimal format for pattern fingerprint processing.
@@ -140,7 +137,7 @@ class CompoundFilter:
             print(f"Invalid SMILES: {e}")
             return []
 
-        logger.info(f"[CompoundFilter] Filtering BBs for {no_dummy_smiles} ( {smiles} )")
+        logger.debug(f"[CompoundFilter] Filtering BBs for {no_dummy_smiles} ( {smiles} )")
 
         num_heavy_atoms = mol_properties["num_heavy_atoms"]
         num_rings = mol_properties["num_rings"]
@@ -168,16 +165,16 @@ class CompoundFilter:
             ].tolist()
 
         if prefiltered_indices is None:
-            logger.info(f"[CompoundFilter] Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
+            logger.debug(f"[CompoundFilter] Originally {self.len_BBs} BBs, filtered down to {len(filtered_indices)}")
         else:
-            logger.info(
+            logger.debug(
                 f"[CompoundFilter] Originally {len(prefiltered_indices)} BBs, filtered down to {len(filtered_indices)}"
             )
 
         return filtered_indices
 
     def get_filtered_BBs(
-        self, smiles: str, prefiltered_indices: Optional[FilterIndicesType] = None
+        self, smiles: str, prefiltered_indices: FilterIndicesType | None = None
     ) -> tuple[FilterIndicesType, BBsType]:
         """Filters building blocks based on a query SMILES string and prefiltered indices.
 

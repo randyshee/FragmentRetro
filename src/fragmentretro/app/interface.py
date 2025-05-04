@@ -1,9 +1,9 @@
 from IPython.display import display
 
-from app.gui.controller import GuiController
-from app.gui.layout import gui_layout
-from app.gui.state import AppState
-from app.gui.widgets import target_smiles_input
+from fragmentretro.app.gui.controller import GuiController
+from fragmentretro.app.gui.layout import gui_layout
+from fragmentretro.app.gui.state import AppState
+from fragmentretro.app.gui.widgets import target_smiles_input
 
 
 # --- Main Function to Display GUI ---

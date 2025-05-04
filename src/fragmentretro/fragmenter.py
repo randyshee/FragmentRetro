@@ -3,9 +3,9 @@
 from rdkit.Chem import Mol
 from rdkit.Chem.BRICS import BreakBRICSBonds, FindBRICSBonds
 
-from fragmentation.rBRICS import BreakrBRICSBonds, FindrBRICSBonds
-from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.utils.type_definitions import BondType
+from fragmentretro.fragmentation.r_brics import break_r_brics_bonds, find_brics_bonds
+from fragmentretro.fragmenter_base import Fragmenter
+from fragmentretro.typing import BondType
 
 
 class BRICSFragmenter(Fragmenter):
@@ -36,7 +36,7 @@ class rBRICSFragmenter(Fragmenter):
         super().__init__(smiles)
 
     def _find_fragmentation_bonds(self, mol: Mol) -> list[BondType]:
-        return list(FindrBRICSBonds(mol))  # type: ignore[no-untyped-call]
+        return list(find_brics_bonds(mol))  # type: ignore[no-untyped-call]
 
     def _break_bonds(self, mol: Mol, bonds: list[BondType]) -> Mol:
-        return BreakrBRICSBonds(mol, bonds)  # type: ignore[no-untyped-call]
+        return break_r_brics_bonds(mol, bonds)  # type: ignore[no-untyped-call]

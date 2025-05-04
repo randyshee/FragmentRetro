@@ -1,16 +1,45 @@
+repo_url: https://github.com/randyshee/FragmentRetro
+repo_name: randyshee/FragmentRetro
+copyright: MIT &copy; 2025 Yu Shee
 site_name: FragmentRetro Docs
 theme:
   name: material
   features:
     - content.code.copy
+    - navigation.footer
+  palette:
+      # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
 
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_css:
+- stylesheets/extra.css
+
+extra:
+  version:
+    provider: mike
+    
 plugins:
 - search
 - mkdocstrings:
     handlers:
-            python:
-              paths:
-                - src
+      python:
+        options:
+          show_source: true  
+          show_submodules: true
+          docstring_style: google
+          show_signature: true
+          members_order: source 
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -23,3 +52,6 @@ markdown_extensions:
   - def_list
   - pymdownx.tasklist:
       custom_checkbox: true
+
+  - admonition
+  - pymdownx.details

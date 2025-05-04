@@ -1,3 +1,4 @@
+import contextlib
 import io
 from pathlib import Path
 from typing import cast
@@ -8,8 +9,8 @@ from PIL.Image import Image as PILImage
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-from app.gui.state import AppState
-from app.gui.widgets import (
+from fragmentretro.app.gui.state import AppState
+from fragmentretro.app.gui.widgets import (
     core_factor_input,
     display_button,
     file_path_input,
@@ -31,13 +32,13 @@ from app.gui.widgets import (
     sort_smiles_button,
     target_smiles_input,
 )
-from app.logging_config import logger
-from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
-from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
-from FragmentRetro.utils.helpers import sort_by_heavy_atoms
-from FragmentRetro.utils.type_definitions import CombType, SolutionType
+from fragmentretro.fragmenter import BRICSFragmenter, rBRICSFragmenter
+from fragmentretro.fragmenter_base import Fragmenter
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
+from fragmentretro.typing import CombType, SolutionType
+from fragmentretro.utils.helpers import sort_by_heavy_atoms
+from fragmentretro.utils.logging_config import logger
 
 
 class GuiController:
@@ -179,10 +180,8 @@ class GuiController:
 
     def update_fragment_comb_dropdown(self, solution: SolutionType | None) -> None:
         """Populates the fragment comb dropdown based on a single solution."""
-        try:
+        with contextlib.suppress(ValueError):
             self.fragment_comb_dropdown.unobserve(self.on_fragment_comb_select, names="value")
-        except ValueError:
-            pass
 
         if solution:
             self.fragment_comb_dropdown.options = [(str(comb), comb) for comb in solution]
@@ -366,7 +365,7 @@ class GuiController:
                 logger.info(f"[GUI] Generated {num_valid_images} image(s). Use dropdown to view.")
 
             dropdown_options: list[tuple[str, int]] = [
-                (f"Solution {original_indices[i]+1}", i) for i in range(num_valid_images) if original_indices[i] != -1
+                (f"Solution {original_indices[i] + 1}", i) for i in range(num_valid_images) if original_indices[i] != -1
             ]
             self.solution_dropdown.options = dropdown_options
             self.solution_dropdown.value = 0 if dropdown_options else None

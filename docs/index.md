@@ -9,7 +9,7 @@ FragmentRetro is a fragment-based retrosynthetic method with quadratic complexit
 You can install the package after cloning the repo:
 
 ```bash
-uv venv --python 3.11.4
+uv venv
 source .venv/bin/activate
 uv pip install -e .
 ```
@@ -29,9 +29,9 @@ Here's a quick example to obtain retrosynthesis solutions:
 
 ```python
 from pathlib import Path
-from FragmentRetro.fragmenter import BRICSFragmenter  # or rBRICSFragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
+from fragmentretro.fragmenter import rBRICSFragmenter  # or BRICSFragmenter
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
 
 DATA_PATH = Path(__name__).parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
@@ -39,7 +39,7 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 JSON_PRECOMPUTE_PATH = PRECOMPUTE_PATH / "n1_stock_properties.json"
 
 target = "COc1ccc(F)c(-c2ccc(COc3cccc(C(CC(=O)O)C4CC4)c3)nc2CC(C)(C)C)c1"
-fragmenter = BRICSFragmenter(target) # or rBRICSFragmenter
+fragmenter = rBRICSFragmenter(target) # or BRICSFragmenter
 retro_tool = Retrosynthesis(fragmenter, original_BBs=None, mol_properties_path=JSON_PRECOMPUTE_PATH)
 retro_tool.fragment_retrosynthesis()
 retro_solution = RetrosynthesisSolution(retro_tool)
@@ -62,7 +62,7 @@ FragmentRetro's Graphical User Interface (GUI) is built using `ipywidget`. To ac
 from app.interface import display_gui
 
 import logging
-from FragmentRetro.utils.logging_config import logger as fragment_logger
+from fragmentretro.utils.logging_config import logger as fragment_logger
 from app.logging_config import logger as app_logger
 
 # Adjust the logging levels to control the verbosity of the logs or to suppress them
@@ -81,7 +81,7 @@ app = display_gui(smiles="CCNCC")
 We welcome any contributions, feel free to clone the repo and create a PR. We recommend using [uv](https://docs.astral.sh/uv/getting-started/installation/):
 
 ```bash
-uv venv --python 3.11.4
+uv venv
 source .venv/bin/activate
 uv pip install -e ".[dev]"
 ```

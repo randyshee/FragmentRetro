@@ -45,12 +45,42 @@
 import copy
 import random
 import re
+from collections.abc import Generator
 
-from rdkit import Chem
+from rdkit import Chem, RDLogger
 from rdkit.Chem import rdChemReactions as Reactions
 
+from fragmentretro.exceptions import SmartsParsingError
+
+RDLogger.DisableLog("rdApp.*")  # Disable RDKit warning messages
+
+type EnvironmentLabel = str
+type SmartsPattern = str
+type BondTypeSpecifier = str
+
+type EnvironmentSmartsMap = dict[EnvironmentLabel, SmartsPattern]
+
+type BondCleavageRule = tuple[EnvironmentLabel, EnvironmentLabel, BondTypeSpecifier]
+type BondCleavageRuleGroup = list[BondCleavageRule]
+type BondCleavageDefinitions = tuple[BondCleavageRuleGroup, ...]
+
+
+type RDKitMol = Chem.Mol  # More explicit alias for rdkit.Chem.Mol
+type RDKitReaction = Reactions.ChemicalReaction  # Alias for rdkit reaction object
+
+type EnvironmentMolMatchersMap = dict[EnvironmentLabel, RDKitMol]
+
+type BondMatcherRule = tuple[EnvironmentLabel, EnvironmentLabel, BondTypeSpecifier, RDKitMol]
+type BondMatcherList = list[list[BondMatcherRule]]
+
+# Type for a list of RDKit reaction objects
+type ReactionList = list[RDKitReaction]
+# Type for the grouped forward reactions
+type ReactionGroups = tuple[ReactionList, ...]
+
+
 # These are the definitions that will be applied to fragment molecules:
-environs = {
+environs: EnvironmentSmartsMap = {
     "L1": "[C;D3]([#0,#6,#7,#8])(=O)",
     #
     # After some discussion, the L2 definitions ("N.pl3" in the original
@@ -110,7 +140,7 @@ environs = {
     #'L51':'[N;!R;!D1;$(N(!@[N,O]))]', #duplication for record
     #'L81':'[C;!R;!D1;$(C(-[C,N,O,S])(=[N,S]))]', #duplication for record
 }
-reactionDefs = (
+reaction_defs: BondCleavageDefinitions = (
     # L1
     [
         ("1", "3", "-"),
@@ -318,109 +348,133 @@ reactionDefs = (
     [("22", "23", "-")],
 )
 
-reactionDefs_r = ([("20", "21", "-")],)
+reaction_defs_r: BondCleavageDefinitions = ([("20", "21", "-")],)
 
 
-def init_reactions(environs, reactionDefs):
-    smartsGps = copy.deepcopy(reactionDefs)
-    for gp in smartsGps:
-        for j, defn in enumerate(gp):
-            g1, g2, bnd = defn
-            r1 = environs["L" + g1]
-            r2 = environs["L" + g2]
-            g1 = re.sub("[a-z,A-Z]", "", g1)
-            g2 = re.sub("[a-z,A-Z]", "", g2)
-            if "@" not in bnd:  # Leili
-                # if 1 == 1:
-                sma = "[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (r1, bnd, r2, g1, g2)
-            else:
-                sma = "[$(%s):1]%s[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (r1, bnd, r2, g1, g2)
-            gp[j] = sma
-            # sma='[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]'%(r1,bnd,r2,g1,g2) #original
-            # gp[j] =sma
+def initialize_env_matchers(environments: EnvironmentSmartsMap) -> EnvironmentMolMatchersMap:
+    env_matchers = {}
+    for env, smarts in environments.items():
+        env_matchers[env] = Chem.MolFromSmarts(smarts)
+    return env_matchers
 
-    for gp in smartsGps:
-        for defn in gp:
-            try:
-                t = Reactions.ReactionFromSmarts(defn)
-                t.Initialize()
-            except:
-                print(defn)
-                raise
 
-    environMatchers = {}
-    for env, sma in environs.items():
-        environMatchers[env] = Chem.MolFromSmarts(sma)
-
-    bondMatchers = []
-    for i, compats in enumerate(reactionDefs):
+def initialize_bond_matchers(
+    environments: EnvironmentSmartsMap, reaction_definitions: BondCleavageDefinitions
+) -> BondMatcherList:
+    bond_matchers = []
+    for rule_group in reaction_definitions:
         tmp = []
-        for i1, i2, bType in compats:
-            e1 = environs["L%s" % i1]
-            e2 = environs["L%s" % i2]
-            if "@" in bType:  # Leili
-                patt = "[$(%s)]%s[$(%s)]" % (e1, bType, e2)
+        for env_idx1, env_idx2, bond in rule_group:
+            smarts1 = environments[f"L{env_idx1}"]
+            smarts2 = environments[f"L{env_idx2}"]
+            if "@" in bond:  # Leili
+                patt = f"[$({smarts1})]{bond}[$({smarts2})]"
             else:
-                patt = "[$(%s)]%s;!@[$(%s)]" % (e1, bType, e2)
+                # patt = "[$(%s)]%s;!@[$(%s)]" % (smarts1, bond, smarts2)
+                patt = f"[$({smarts1})]{bond};!@[$({smarts2})]"
             # patt = '[$(%s)]%s;!@[$(%s)]'%(e1,bType,e2) #original
             patt = Chem.MolFromSmarts(patt)
-            tmp.append((i1, i2, bType, patt))
-        bondMatchers.append(tmp)
-
-    reactions = tuple([[Reactions.ReactionFromSmarts(y) for y in x] for x in smartsGps])
-    reverseReactions = []
-    for i, rxnSet in enumerate(smartsGps):
-        for j, sma in enumerate(rxnSet):
-            rs, ps = sma.split(">>")
-            sma = "%s>>%s" % (ps, rs)
-            rxn = Reactions.ReactionFromSmarts(sma)
-            labels = re.findall(r"\[([0-9]+?)\*\]", ps)
-            rxn._matchers = [Chem.MolFromSmiles("[%s*]" % x) for x in labels]
-            reverseReactions.append(rxn)
-
-    return gp, environMatchers, bondMatchers, reactions, reverseReactions
+            tmp.append((env_idx1, env_idx2, bond, patt))
+        bond_matchers.append(tmp)
+    return bond_matchers
 
 
-gp, environMatchers, bondMatchers, reactions, reverseReactions = init_reactions(environs, reactionDefs)
-gp_r, environMatchers_r, bondMatchers_r, reactions_r, reverseReactions_r = init_reactions(environs, reactionDefs_r)
+def init_reactions(
+    environments: EnvironmentSmartsMap, reaction_definitions: BondCleavageDefinitions
+) -> tuple[list[list[SmartsPattern]], ReactionGroups, ReactionList]:
+    rule_groups = copy.deepcopy(reaction_definitions)
+    smarts_groups = []
+    for rule_group in rule_groups:
+        new_rule_group = []
+        for rule in rule_group:
+            env_idx1, env_idx2, bond = rule
+            smarts1 = environs["L" + env_idx1]
+            smarts2 = environs["L" + env_idx2]
+            g1 = re.sub("[a-z,A-Z]", "", env_idx1)
+            g2 = re.sub("[a-z,A-Z]", "", env_idx2)
+            if "@" not in bond:  # Leili
+                # if 1 == 1:
+                # sma = "[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                sma = f"[$({smarts1})]{bond};!@[$({smarts2})]>>[{g1}*]-[*:1].[{g2}*]-[*:2]"
+            else:
+                # sma = "[$(%s):1]%s[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]" % (smarts1, bond, smarts2, g1, g2)
+                sma = f"[$({smarts1})]{bond}[$({smarts2})]>>[{g1}*]-[*:1].[{g2}*]-[*:2]"
+            new_rule_group.append(sma)
+            # sma='[$(%s):1]%s;!@[$(%s):2]>>[%s*]-[*:1].[%s*]-[*:2]'%(r1,bnd,r2,g1,g2) #original
+            # gp[j] =sma
+        smarts_groups.append(new_rule_group)
+
+    for smarts_group in smarts_groups:
+        for smarts in smarts_group:
+            try:
+                t = Reactions.ReactionFromSmarts(smarts)
+                t.Initialize()
+            except Exception as e:
+                raise SmartsParsingError(f"Failed to parse SMARTS pattern: {smarts}") from e
+
+    reactions = tuple([[Reactions.ReactionFromSmarts(y) for y in x] for x in smarts_groups])
+    reverse_reactions = []
+    for smarts_group in smarts_groups:
+        for smarts in smarts_group:
+            reactants, products = smarts.split(">>")
+            smarts = f"{products}>>{reactants}"
+            rxn = Reactions.ReactionFromSmarts(smarts)
+            labels = re.findall(r"\[([0-9]+?)\*\]", products)
+            rxn._matchers = [Chem.MolFromSmiles(f"[{x}*]") for x in labels]
+            reverse_reactions.append(rxn)
+
+    return smarts_groups, reactions, reverse_reactions
 
 
-def FindrBRICSBonds(mol, randomizeOrder=False, silent=True):
+smarts_groups, reactions, REVERSE_REACTIONS = init_reactions(environs, reaction_defs)
+smarts_groups_r, reactions_r, REVERSE_REACTIONS_R = init_reactions(environs, reaction_defs_r)
+
+ENV_MATCHERS = initialize_env_matchers(environs)
+# AM: rBRICS had env_matchers_r, but because env matcher does not depend on reaction definitions,
+# that env_matchers_r was identical to env_matchers
+
+BOND_MATCHERS = initialize_bond_matchers(environs, reaction_defs)
+BOND_MATCHERS_R = initialize_bond_matchers(environs, reaction_defs_r)
+
+
+def find_brics_bonds(
+    mol: Chem.Mol, randomizeOrder: bool = False, silent: bool = True
+) -> Generator[tuple[tuple[int, int], tuple[EnvironmentLabel, EnvironmentLabel]], None, None]:
     """returns the bonds in a molecule that BRICS would cleave
 
     >>> from rdkit import Chem
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> res = list(FindrBRICSBonds(m))
+    >>> res = list(find_brics_bonds(m))
     >>> res
     [((3, 2), ('3', '4')), ((3, 4), ('3', '4'))]
 
     a more complicated case:
     >>> m = Chem.MolFromSmiles('CCCOCCC(=O)c1ccccc1')
-    >>> res = list(FindrBRICSBonds(m))
+    >>> res = list(find_brics_bonds(m))
     >>> res
     [((3, 2), ('3', '4')), ((3, 4), ('3', '4')), ((6, 8), ('6', '16'))]
 
     we can also randomize the order of the results:
     >>> random.seed(23)
-    >>> res = list(FindrBRICSBonds(m,randomizeOrder=True))
+    >>> res = list(find_brics_bonds(m,randomizeOrder=True))
     >>> sorted(res)
     [((3, 2), ('3', '4')), ((3, 4), ('3', '4')), ((6, 8), ('6', '16'))]
 
     Note that this is a generator function :
-    >>> res = FindrBRICSBonds(m)
+    >>> res = find_brics_bonds(m)
     >>> res
     <generator object ...>
     >>> res.next()
     ((3, 2), ('3', '4'))
 
     >>> m = Chem.MolFromSmiles('CC=CC')
-    >>> res = list(FindrBRICSBonds(m))
+    >>> res = list(find_brics_bonds(m))
     >>> sorted(res)
     [((1, 2), ('7', '7'))]
 
     make sure we don't match ring bonds:
     >>> m = Chem.MolFromSmiles('O=C1NCCC1')
-    >>> list(FindrBRICSBonds(m))
+    >>> list(find_brics_bonds(m))
     []
 
     another nice one, make sure environment 8 doesn't match something connected
@@ -431,87 +485,95 @@ def FindrBRICSBonds(mol, randomizeOrder=False, silent=True):
 
     """
     letter = re.compile("[a-z,A-Z]")
-    indices = range(len(bondMatchers))
-    bondsDone = set()
+    indices = list(range(len(BOND_MATCHERS)))
+    bonds_done = set()
     if randomizeOrder:
         random.shuffle(indices)
 
-    envMatches = {}
-    for env, patt in environMatchers.items():  # Leili
-        envMatches[env] = mol.HasSubstructMatch(patt)
-    for gpIdx in indices:
+    env_matches = {}
+    for env, substruct_mol in ENV_MATCHERS.items():  # Leili
+        env_matches[env] = mol.HasSubstructMatch(substruct_mol)
+    for group_idx in indices:
         if randomizeOrder:
-            compats = bondMatchers[gpIdx][:]
-            random.shuffle(compats)
+            matchers_list = BOND_MATCHERS[group_idx][:]
+            random.shuffle(matchers_list)
         else:
-            compats = bondMatchers[gpIdx]
-        for i1, i2, bType, patt in compats:
-            if not envMatches["L" + i1] or not envMatches["L" + i2]:
+            matchers_list = BOND_MATCHERS[group_idx]
+        for i1, i2, _, substruct_mol in matchers_list:
+            if not env_matches["L" + i1] or not env_matches["L" + i2]:
                 continue
-            matches = mol.GetSubstructMatches(patt)
+            matches = mol.GetSubstructMatches(substruct_mol)
             i1 = letter.sub("", i1)
             i2 = letter.sub("", i2)
             for match in matches:
-                if match not in bondsDone and (match[1], match[0]) not in bondsDone:
-                    bondsDone.add(match)
+                if match not in bonds_done and (match[1], match[0]) not in bonds_done:
+                    bonds_done.add(match)
                     yield (((match[0], match[1]), (i1, i2)))
 
 
 # Leili
-def FindreBRICSBonds(mol, randomizeOrder=False, silent=True):
+def find_r_brics_bonds(
+    mol: Chem.Mol, randomizeOrder: bool = False, silent: bool = True
+) -> Generator[tuple[tuple[int, int], tuple[EnvironmentLabel, EnvironmentLabel]], None, None]:
     letter = re.compile("[a-z,A-Z]")
-    indices = range(len(bondMatchers_r))
-    bondsDone = set()
+    indices = list(range(len(BOND_MATCHERS_R)))
+
+    bonds_done = set()
     if randomizeOrder:
         random.shuffle(indices)
 
-    envMatches = {}
-    for env, patt in environMatchers_r.items():  # Leili
-        envMatches[env] = mol.HasSubstructMatch(patt)
-    for gpIdx in indices:
+    env_matches = {}
+    for env, substruct_mol in ENV_MATCHERS.items():  # Leili
+        env_matches[env] = mol.HasSubstructMatch(substruct_mol)
+    for group_idx in indices:
         if randomizeOrder:
-            compats = bondMatchers_r[gpIdx][:]
-            random.shuffle(compats)
+            matchers_list = BOND_MATCHERS_R[group_idx][:]
+            random.shuffle(matchers_list)
         else:
-            compats = bondMatchers_r[gpIdx]
-        for i1, i2, bType, patt in compats:
-            if not envMatches["L" + i1] or not envMatches["L" + i2]:
+            matchers_list = BOND_MATCHERS_R[group_idx]
+        for i1, i2, _, substruct_mol in matchers_list:
+            if not env_matches["L" + i1] or not env_matches["L" + i2]:
                 continue
-            matches = mol.GetSubstructMatches(patt)
+            matches = mol.GetSubstructMatches(substruct_mol)
             i1 = letter.sub("", i1)
             i2 = letter.sub("", i2)
             for match in matches:
-                if match not in bondsDone and (match[1], match[0]) not in bondsDone:
-                    bondsDone.add(match)
+                if match not in bonds_done and (match[1], match[0]) not in bonds_done:
+                    bonds_done.add(match)
                     yield (((match[0], match[1]), (i1, i2)))
 
 
-def BreakrBRICSBonds(mol, bonds=None, sanitize=True, silent=True):
+def break_r_brics_bonds(
+    mol: Chem.Mol,
+    bonds: list[tuple[tuple[int, int], tuple[EnvironmentLabel, EnvironmentLabel]]] | None = None,
+    sanitize: bool = True,
+    silent: bool = True,
+) -> Chem.Mol:
     """breaks the BRICS bonds in a molecule and returns the results
 
     >>> from rdkit import Chem
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> m2=BreakrBRICSBonds(m)
+    >>> m2=break_r_brics_bonds(m)
     >>> Chem.MolToSmiles(m2,True)
     '[3*]O[3*].[4*]CC.[4*]CCC'
 
     a more complicated case:
     >>> m = Chem.MolFromSmiles('CCCOCCC(=O)c1ccccc1')
-    >>> m2=BreakrBRICSBonds(m)
+    >>> m2=break_r_brics_bonds(m)
     >>> Chem.MolToSmiles(m2,True)
     '[3*]O[3*].[4*]CCC.[4*]CCC([6*])=O.[16*]c1ccccc1'
 
 
     can also specify a limited set of bonds to work with:
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> m2 = BreakrBRICSBonds(m,[((3, 2), ('3', '4'))])
+    >>> m2 = break_r_brics_bonds(m,[((3, 2), ('3', '4'))])
     >>> Chem.MolToSmiles(m2,True)
     '[3*]OCC.[4*]CCC'
 
     this can be used as an alternate approach for doing a BRICS decomposition by
-    following BreakrBRICSBonds with a call to Chem.GetMolFrags:
+    following break_r_brics_bonds with a call to Chem.GetMolFrags:
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> m2=BreakrBRICSBonds(m)
+    >>> m2=break_r_brics_bonds(m)
     >>> frags = Chem.GetMolFrags(m2,asMols=True)
     >>> [Chem.MolToSmiles(x,True) for x in frags]
     ['[4*]CCC', '[3*]O[3*]', '[4*]CC']
@@ -563,25 +625,25 @@ def BreakrBRICSBonds(mol, bonds=None, sanitize=True, silent=True):
     return res
 
 
-def rBRICSDecompose(
-    mol,
-    allNodes=None,
-    minFragmentSize=1,
-    onlyUseReactions=None,
-    silent=True,
-    keepNonLeafNodes=False,
-    singlePass=False,
-    returnMols=False,
-):
+def r_brics_decompose(
+    mol: Chem.Mol,
+    allNodes: set[str] | None = None,
+    minFragmentSize: int = 1,
+    onlyUseReactions: list[tuple[int, int]] | None = None,
+    silent: bool = True,
+    keepNonLeafNodes: bool = False,
+    singlePass: bool = False,
+    returnMols: bool = False,
+) -> list[Chem.Mol]:
     """returns the BRICS decomposition for a molecule
 
     >>> from rdkit import Chem
     >>> m = Chem.MolFromSmiles('CCCOCc1cc(c2ncccc2)ccc1')
-    >>> res = list(rBRICSDecompose(m))
+    >>> res = list(r_brics_decompose(m))
     >>> sorted(res)
     ['[14*]c1ccccn1', '[16*]c1cccc([16*])c1', '[3*]O[3*]', '[4*]CCC', '[4*]C[8*]']
 
-    >>> res = rBRICSDecompose(m,returnMols=True)
+    >>> res = r_brics_decompose(m,returnMols=True)
     >>> res[0]
     <rdkit.Chem.rdchem.Mol object ...>
     >>> smis = [Chem.MolToSmiles(x,True) for x in res]
@@ -590,37 +652,37 @@ def rBRICSDecompose(
 
     nexavar, an example from the paper (corrected):
     >>> m = Chem.MolFromSmiles('CNC(=O)C1=NC=CC(OC2=CC=C(NC(=O)NC3=CC(=C(Cl)C=C3)C(F)(F)F)C=C2)=C1')
-    >>> res = list(rBRICSDecompose(m))
+    >>> res = list(r_brics_decompose(m))
     >>> sorted(res)
     ['[1*]C([1*])=O', '[1*]C([6*])=O', '[14*]c1cc([16*])ccn1', '[16*]c1ccc(Cl)c([16*])c1', '[16*]c1ccc([16*])cc1', '[3*]O[3*]', '[5*]NC', '[5*]N[5*]', '[8*]C(F)(F)F']
 
     it's also possible to keep pieces that haven't been fully decomposed:
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> res = list(rBRICSDecompose(m,keepNonLeafNodes=True))
+    >>> res = list(r_brics_decompose(m,keepNonLeafNodes=True))
     >>> sorted(res)
     ['CCCOCC', '[3*]OCC', '[3*]OCCC', '[3*]O[3*]', '[4*]CC', '[4*]CCC']
 
     >>> m = Chem.MolFromSmiles('CCCOCc1cc(c2ncccc2)ccc1')
-    >>> res = list(rBRICSDecompose(m,keepNonLeafNodes=True))
+    >>> res = list(r_brics_decompose(m,keepNonLeafNodes=True))
     >>> sorted(res)
     ['CCCOCc1cccc(-c2ccccn2)c1', '[14*]c1ccccn1', '[16*]c1cccc(-c2ccccn2)c1', '[16*]c1cccc(COCCC)c1', '[16*]c1cccc([16*])c1', '[3*]OCCC', '[3*]OC[8*]', '[3*]OCc1cccc(-c2ccccn2)c1', '[3*]OCc1cccc([16*])c1', '[3*]O[3*]', '[4*]CCC', '[4*]C[8*]', '[4*]Cc1cccc(-c2ccccn2)c1', '[4*]Cc1cccc([16*])c1', '[8*]COCCC']
 
     or to only do a single pass of decomposition:
     >>> m = Chem.MolFromSmiles('CCCOCc1cc(c2ncccc2)ccc1')
-    >>> res = list(rBRICSDecompose(m,singlePass=True))
+    >>> res = list(r_brics_decompose(m,singlePass=True))
     >>> sorted(res)
     ['CCCOCc1cccc(-c2ccccn2)c1', '[14*]c1ccccn1', '[16*]c1cccc(-c2ccccn2)c1', '[16*]c1cccc(COCCC)c1', '[3*]OCCC', '[3*]OCc1cccc(-c2ccccn2)c1', '[4*]CCC', '[4*]Cc1cccc(-c2ccccn2)c1', '[8*]COCCC']
 
     setting a minimum size for the fragments:
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> res = list(rBRICSDecompose(m,keepNonLeafNodes=True,minFragmentSize=2))
+    >>> res = list(r_brics_decompose(m,keepNonLeafNodes=True,minFragmentSize=2))
     >>> sorted(res)
     ['CCCOCC', '[3*]OCC', '[3*]OCCC', '[4*]CC', '[4*]CCC']
     >>> m = Chem.MolFromSmiles('CCCOCC')
-    >>> res = list(rBRICSDecompose(m,keepNonLeafNodes=True,minFragmentSize=3))
+    >>> res = list(r_brics_decompose(m,keepNonLeafNodes=True,minFragmentSize=3))
     >>> sorted(res)
     ['CCCOCC', '[3*]OCC', '[4*]CCC']
-    >>> res = list(rBRICSDecompose(m,minFragmentSize=2))
+    >>> res = list(r_brics_decompose(m,minFragmentSize=2))
     >>> sorted(res)
     ['[3*]OCC', '[3*]OCCC', '[4*]CC', '[4*]CCC']
 
@@ -633,13 +695,13 @@ def rBRICSDecompose(
         allNodes = set()
 
     if mSmi in allNodes:
-        return set()
+        return []
 
-    activePool = {mSmi: mol}
+    activePool: dict[str, Chem.Mol] = {mSmi: mol}
     allNodes.add(mSmi)
-    foundMols = {mSmi: mol}
+    foundMols: dict[str, Chem.Mol] = {mSmi: mol}
     for gpIdx, reactionGp in enumerate(reactions):
-        newPool = {}
+        newPool: dict[str, Chem.Mol] = {}
         while activePool:
             matched = False
             nSmi = list(activePool.keys())[0]
@@ -674,7 +736,7 @@ def rBRICSDecompose(
                             prod.pSmi = pSmi
                         if seqOk:
                             matched = True
-                            for nats, prod in prodSeq:
+                            for _, prod in prodSeq:
                                 pSmi = prod.pSmi
                                 # print '\t',nats,pSmi
                                 if pSmi not in allNodes:
@@ -687,21 +749,27 @@ def rBRICSDecompose(
         activePool = newPool
     if not (singlePass or keepNonLeafNodes):
         if not returnMols:
-            res = set(activePool.keys())
+            return list(activePool.keys())
         else:
-            res = activePool.values()
+            return list(activePool.values())
     else:
         if not returnMols:
-            res = allNodes
+            return list(allNodes)
         else:
-            res = foundMols.values()
-    return res
+            return list(foundMols.values())
 
 
 dummyPattern = Chem.MolFromSmiles("[*]")
 
 
-def BRICSBuild(fragments, onlyCompleteMols=True, seeds=None, uniquify=True, scrambleReagents=True, maxDepth=3):
+def BRICSBuild(
+    fragments: list[Chem.Mol],
+    onlyCompleteMols: bool = True,
+    seeds: list[Chem.Mol] | None = None,
+    uniquify: bool = True,
+    scrambleReagents: bool = True,
+    maxDepth: int = 3,
+) -> Generator[Chem.Mol, None, None]:
     seen = set()
     if not seeds:
         seeds = list(fragments)
@@ -709,10 +777,10 @@ def BRICSBuild(fragments, onlyCompleteMols=True, seeds=None, uniquify=True, scra
         seeds = list(seeds)
         random.shuffle(seeds)
     if scrambleReagents:
-        tempReactions = list(reverseReactions)
+        tempReactions = list(REVERSE_REACTIONS)
         random.shuffle(tempReactions)
     else:
-        tempReactions = reverseReactions
+        tempReactions = REVERSE_REACTIONS
     for seed in seeds:
         seedIsR1 = False
         seedIsR2 = False
@@ -724,12 +792,10 @@ def BRICSBuild(fragments, onlyCompleteMols=True, seeds=None, uniquify=True, scra
                 seedIsR2 = True
             for fragment in fragments:
                 ps = None
-                if fragment.HasSubstructMatch(rxn._matchers[0]):
-                    if seedIsR2:
-                        ps = rxn.RunReactants((fragment, seed))
-                if fragment.HasSubstructMatch(rxn._matchers[1]):
-                    if seedIsR1:
-                        ps = rxn.RunReactants((seed, fragment))
+                if fragment.HasSubstructMatch(rxn._matchers[0]) and seedIsR2:
+                    ps = rxn.RunReactants((fragment, seed))
+                if fragment.HasSubstructMatch(rxn._matchers[1]) and seedIsR1:
+                    ps = rxn.RunReactants((seed, fragment))
                 if ps:
                     for p in ps:
                         if uniquify:
@@ -761,35 +827,33 @@ def BRICSBuild(fragments, onlyCompleteMols=True, seeds=None, uniquify=True, scra
 # Leili
 # Iteratively breaks all aliphatic chains using linkage L20-L21, just in case chain is too long and L20-L23 aren't enough
 # Not the most efficient code yet
-def reBRICS(fragments):
+def reBRICS(fragments: list[Chem.Mol]) -> list[Chem.Mol]:
     oldfragments = fragments
     breakable = [1] * len(oldfragments)
     breakout = sum(breakable)
     iteri = 0
     while breakout > 0:
-        iii = 0
-        newfrags = ()
-        newbreakable = []
+        newfrags: list[Chem.Mol] = []
+        newbreakable: list[int] = []
         for frag in oldfragments:
             heavy = frag.GetNumHeavyAtoms()
             if heavy > 5:
                 if len(frag.GetSubstructMatch(Chem.MolFromSmiles("CCCCCC"))) > 0:
-                    secondbonds = FindreBRICSBonds(frag)  # only breaks aliphatic chains
-                    secondpieces = BreakrBRICSBonds(frag, secondbonds)
+                    secondbonds = list(find_r_brics_bonds(frag))  # only breaks aliphatic chains
+                    secondpieces = break_r_brics_bonds(frag, secondbonds)
                     secondfrags = Chem.GetMolFrags(secondpieces, asMols=True)
                     if len(secondfrags) > 1:
                         newfrags = newfrags + secondfrags
                         newbreakable = newbreakable + [1] * len(secondfrags)
                     else:
                         newfrags = newfrags + secondfrags
-                        newbreakable = newbreakable.append(0)  # 1 frag->1 frag, no longer breakable, criteria #1
+                        newbreakable.append(0)  # 1 frag->1 frag, no longer breakable, criteria #1
                 else:
-                    newfrags = newfrags + (frag,)
+                    newfrags.append(frag)
                     newbreakable.append(0)  # frag doesn't contain CCCCCC chain, no longer breakable, criteria #2
             else:
-                newfrags = newfrags + (frag,)
+                newfrags.append(frag)
                 newbreakable.append(0)  # frag contains less than 5 heavy atoms, no longer breakable, criteria #3
-            iii += 1
         oldfragments = newfrags
         breakable = newbreakable
         breakout = sum(newbreakable)

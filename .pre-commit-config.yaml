@@ -6,22 +6,15 @@ repos:
     hooks:
       - id: ruff
         name: ruff (linter)
-        entry: ruff check
-        language: system
+        entry: ruff check --fix
+        language: python
         types: [python]
         
       - id: ruff-format
         name: ruff (formatter)
         entry: ruff format
-        language: system
+        language: python
         types: [python]
-
-      - id: isort
-        name: isort
-        entry: isort
-        language: system
-        types: [python]
-        args: [--profile=black]
 
       # - id: mypy
       #   name: mypy

@@ -3,10 +3,9 @@
 from itertools import combinations as itertools_combinations
 
 import pytest
-
-from FragmentRetro.fragmenter import BRICSFragmenter, rBRICSFragmenter
-from FragmentRetro.substructure_matcher import SubstructureMatcher
-from FragmentRetro.utils.helpers import count_heavy_atoms, replace_dummy_atoms_regex
+from fragmentretro.fragmenter import BRICSFragmenter, rBRICSFragmenter
+from fragmentretro.substructure_matcher import SubstructureMatcher
+from fragmentretro.utils.helpers import count_heavy_atoms, replace_dummy_atoms_regex
 
 TEST_CASES_FOR_GET_LENGTH_N_COMBINATIONS = [
     {

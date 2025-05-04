@@ -5,9 +5,9 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from FragmentRetro.utils.filter_compound import precompute_properties
-from FragmentRetro.utils.helpers import canonicalize_smiles
-from FragmentRetro.utils.logging_config import logger
+from fragmentretro.utils.filter_compound import precompute_properties
+from fragmentretro.utils.helpers import canonicalize_smiles
+from fragmentretro.utils.logging_config import logger
 
 DATA_PATH = Path(__file__).parent
 BUYABLES_PATH = DATA_PATH / "buyables"
@@ -15,11 +15,13 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
 if __name__ == "__main__":
     logger.info("Decompressing buyables data...")
-    with gzip.open(BUYABLES_PATH / "buyables_all.json.gz", "rb") as f_in:
-        with open(BUYABLES_PATH / "buyables_all.json", "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
+    with (
+        gzip.open(BUYABLES_PATH / "buyables_all.json.gz", "rb") as f_in,
+        open(BUYABLES_PATH / "buyables_all.json", "wb") as f_out,
+    ):
+        shutil.copyfileobj(f_in, f_out)
     logger.info("Loading buyables data...")
-    with open(BUYABLES_PATH / "buyables_all.json", "r") as f:
+    with open(BUYABLES_PATH / "buyables_all.json") as f:
         buyables = json.load(f)
     buyables_smiles = [buyable["smiles"] for buyable in buyables]
 

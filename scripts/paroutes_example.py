@@ -3,10 +3,10 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from FragmentRetro.fragmenter import BRICSFragmenter  # or use rBRICSFragmenter
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
-from FragmentRetro.utils.logging_config import logger
+from fragmentretro.fragmenter import BRICSFragmenter  # or use rBRICSFragmenter
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
+from fragmentretro.utils.logging_config import logger
 
 DATA_PATH = Path(__name__).parent / "data"
 PAROUTES_PATH = DATA_PATH / "paroutes"
@@ -15,7 +15,7 @@ PRECOMPUTE_PATH = DATA_PATH / "precompute"
 
 
 ####### Change this
-with open(PAROUTES_PATH / "n1-stock.txt", "r") as f:
+with open(PAROUTES_PATH / "n1-stock.txt") as f:
     n1_stock = [line.strip() for line in f.readlines()]
 
 with open(PAROUTES_PATH / "n1-targets.txt", "rb") as f:

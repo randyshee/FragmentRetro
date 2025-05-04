@@ -1,8 +1,8 @@
 from PIL.Image import Image as PILImage  # For type hinting
 
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.solutions import RetrosynthesisSolution
-from FragmentRetro.utils.type_definitions import CombType, SolutionType
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.solutions import RetrosynthesisSolution
+from fragmentretro.typing import CombType, SolutionType
 
 
 class AppState:

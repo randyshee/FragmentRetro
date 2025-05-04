@@ -7,14 +7,8 @@ This is the GUI Implementation for FragmentRetro.
 In a Jupyter notebook:
 
 ```python
-from app.interface import display_gui
+from fragmentretro.app.interface import display_gui
 
-import logging
-from FragmentRetro.utils.logging_config import logger as fragment_logger
-from app.logging_config import logger as app_logger
-
-# Adjust the logging levels to control the verbosity of the logs or to suppress them
-fragment_logger.setLevel(logging.WARNING)
 app_logger.setLevel(logging.INFO) 
 
 # To display the GUI without any initial SMILES input
@@ -26,7 +20,7 @@ app = display_gui(smiles="CCNCC")
 
 ## Source Code
 
-::: app.interface
+::: fragmentretro.app.interface
     handler: python
     options:
       show_root_heading: true
@@ -34,7 +28,7 @@ app = display_gui(smiles="CCNCC")
       members:
         - display_gui
 
-::: app.gui.controller
+::: fragmentretro.app.gui.controller
     handler: python
     options:
       show_root_heading: true

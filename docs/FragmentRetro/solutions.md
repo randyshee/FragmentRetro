@@ -5,9 +5,9 @@ The `RetrosynthesisSolution` class is designed to find and visualize all possibl
 ## Example Use
 
 ```python
-from FragmentRetro.retrosynthesis import Retrosynthesis
-from FragmentRetro.fragmenter import BRICSFragmenter
-from FragmentRetro.solutions import RetrosynthesisSolution
+from fragmentretro.retrosynthesis import Retrosynthesis
+from fragmentretro.fragmenter import BRICSFragmenter
+from fragmentretro.solutions import RetrosynthesisSolution
 
 # Example SMILES
 smiles = "COc1ccc(-n2nccn2)c(C(=O)N2CCC[C@@]2(C)c2nc3c(C)c(Cl)ccc3[nH]2)c1"
@@ -32,7 +32,7 @@ for i, img in enumerate(images):
 
 ## Source Code
 
-::: FragmentRetro.solutions
+::: fragmentretro.solutions
     handler: python
     options:
       show_root_heading: true

@@ -1,12 +1,9 @@
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
-from FragmentRetro.fragmenter_base import Fragmenter
-from FragmentRetro.substructure_matcher import SubstructureMatcher
-from FragmentRetro.utils.filter_compound import CompoundFilter
-from FragmentRetro.utils.helpers import remove_indices_before_dummy
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import (
+from fragmentretro.fragmenter_base import Fragmenter
+from fragmentretro.substructure_matcher import SubstructureMatcher
+from fragmentretro.typing import (
     BBsType,
     CombBBsDictType,
     CombFilterIndicesDictType,
@@ -15,19 +12,22 @@ from FragmentRetro.utils.type_definitions import (
     FragmentBBsDictType,
     StageCombDictType,
 )
+from fragmentretro.utils.filter_compound import CompoundFilter
+from fragmentretro.utils.helpers import remove_indices_before_dummy
+from fragmentretro.utils.logging_config import logger
 
 
 class Retrosynthesis:
     def __init__(
         self,
         fragmenter: Fragmenter,
-        original_BBs: Optional[BBsType] = None,
-        mol_properties_path: Optional[Path] = None,
+        original_BBs: BBsType | None = None,
+        mol_properties_path: Path | None = None,
         fpSize: int = 2048,
         parallelize: bool = False,
-        num_cores: Optional[int] = None,
+        num_cores: int | None = None,
         core_factor: int = 10,
-        compound_filter: Optional[CompoundFilter] = None,
+        compound_filter: CompoundFilter | None = None,
     ):
         self.fragmenter = fragmenter
         self.num_fragments = fragmenter.num_fragments
@@ -41,9 +41,9 @@ class Retrosynthesis:
         self.last_stage_combs: list[CombType]
 
         if original_BBs is not None and mol_properties_path is not None:
-            logger.warn("Both original_BBs and mol_properties_path are provided. " "Will be using mol_properties_path.")
+            logger.warn("Both original_BBs and mol_properties_path are provided. Will be using mol_properties_path.")
         elif mol_properties_path is not None and compound_filter is not None:
-            logger.warn("Both mol_properties_path and compound_filter are provided. " "Will be using compound_filter.")
+            logger.warn("Both mol_properties_path and compound_filter are provided. Will be using compound_filter.")
         elif original_BBs is None and mol_properties_path is None and compound_filter is None:
             logger.critical("Either original_BBs, mol_properties_path, or compound_filter must be provided.")
         if mol_properties_path is not None:
@@ -72,12 +72,9 @@ class Retrosynthesis:
         """
         len_comb = len(comb)
         len_minus_one_invalid_combs = self.invalid_combinations_dict.get(len_comb - 1, [])
-        for invalid_comb in len_minus_one_invalid_combs:
-            if set(invalid_comb).issubset(set(comb)):
-                return False
-        return True
+        return all(not set(invalid_comb).issubset(set(comb)) for invalid_comb in len_minus_one_invalid_combs)
 
-    def _get_prefiltered_indices(self, comb: CombType) -> Optional[FilterIndicesType]:
+    def _get_prefiltered_indices(self, comb: CombType) -> FilterIndicesType | None:
         """Get prefiltered indices for a given combination.
 
         This method retrieves a list of prefiltered indices based on valid
@@ -148,7 +145,7 @@ class Retrosynthesis:
                 return filtered_BBs
             else:
                 possible_BBs = self._get_possible_BBs_for_comb_no_filter(comb)
-                logger.info(
+                logger.debug(
                     f"[Retrosynthesis] Number of possible BBs (when no filter) for {comb_smiles}: {len(possible_BBs)}"
                 )
                 return possible_BBs.intersection(filtered_BBs)
@@ -178,7 +175,7 @@ class Retrosynthesis:
             combs = list(self.fragmenter.get_length_n_combinations_from_last_stage(self.last_stage_combs))
             self.last_stage_combs = combs
 
-        logger.info(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {len(combs)} combinations")
         # check invalid comb and filter out effective comb
         effective_combs, invalid_combs = [], []
         for comb in combs:
@@ -187,14 +184,14 @@ class Retrosynthesis:
             else:
                 invalid_combs.append(comb)
         self.invalid_combinations_dict[stage] = invalid_combs
-        logger.info(f"[Retrosynthesis] Stage {stage}: {len(effective_combs)} effective combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {len(effective_combs)} effective combinations")
 
         for comb in effective_combs:
             fragment_smiles = self.fragmenter.get_combination_smiles(comb)
             fragment_smiles_without_indices = remove_indices_before_dummy(fragment_smiles)
             # get building blocks for comb
             if fragment_smiles_without_indices in self.fragment_bbs_dict:
-                logger.info(
+                logger.debug(
                     f"[Retrosynthesis] Fragment {fragment_smiles} ( {fragment_smiles_without_indices} ) already processed"
                 )
                 previous_comb, valid_BBs = self.fragment_bbs_dict[fragment_smiles_without_indices]
@@ -202,7 +199,7 @@ class Retrosynthesis:
                 self.comb_filter_indices_dict[comb] = self.comb_filter_indices_dict[previous_comb]
             else:
                 possible_comb_BBs = self._get_possible_BBs_for_comb(comb)
-                logger.info(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
+                logger.debug(f"[Retrosynthesis] Number of possible BBs for {fragment_smiles}: {len(possible_comb_BBs)}")
                 comb_matcher = SubstructureMatcher(
                     possible_comb_BBs,
                     parallelize=self.parallelize,
@@ -220,8 +217,8 @@ class Retrosynthesis:
                 self.invalid_combinations_dict[stage].append(comb)
         stage_valid_count = len(self.valid_combinations_dict[stage])
         stage_invalid_count = len(self.invalid_combinations_dict[stage])
-        logger.info(f"[Retrosynthesis] Stage {stage}: {stage_valid_count} valid combinations")
-        logger.info(f"[Retrosynthesis] Stage {stage}: {stage_invalid_count} invalid combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {stage_valid_count} valid combinations")
+        logger.debug(f"[Retrosynthesis] Stage {stage}: {stage_invalid_count} invalid combinations")
         return stage_valid_count, stage_invalid_count
 
     def fragment_retrosynthesis(self) -> StageCombDictType:
@@ -239,7 +236,7 @@ class Retrosynthesis:
         for stage in range(1, self.num_fragments + 1):
             stage_valid_count, stage_invalid_count = self._retro_stage(stage)
             if stage_valid_count == 0 or (stage == 1 and stage_invalid_count > 0):
-                logger.info(f"[Retrosynthesis] Stopped at stage {stage}")
+                logger.debug(f"[Retrosynthesis] Stopped at stage {stage}")
                 break
         if self.use_filter:
             # save memory

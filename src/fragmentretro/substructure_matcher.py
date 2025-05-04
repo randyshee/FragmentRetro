@@ -1,21 +1,21 @@
 import re
 from multiprocessing import Pool, cpu_count
-from typing import Optional, cast
+from typing import cast
 
 from rdkit import Chem
 from rdkit.Chem.rdchem import Atom
 
-from FragmentRetro.utils.logging_config import logger
-from FragmentRetro.utils.type_definitions import BBsType
+from fragmentretro.typing import BBsType
+from fragmentretro.utils.logging_config import logger
 
 
 class SubstructureMatcher:
     def __init__(
         self,
-        BBs: BBsType = set(),
+        BBs: BBsType,
         useChirality: bool = True,
         parallelize: bool = False,
-        num_cores: Optional[int] = None,
+        num_cores: int | None = None,
         core_factor: int = 10,
     ):
         """
@@ -124,7 +124,7 @@ class SubstructureMatcher:
                 # remove chirality information (in re group \1) for atoms with dummy neighbors
                 smarts_with_indices = re.sub(
                     rf"\[\#{atomic_num}(@*)&H{num_hydrogens}:{idx}\]",
-                    rf"[#{atomic_num}&H{num_hydrogens},#{atomic_num}&H{num_hydrogens+1}:{idx}]",
+                    rf"[#{atomic_num}&H{num_hydrogens},#{atomic_num}&H{num_hydrogens + 1}:{idx}]",
                     smarts_with_indices,
                 )
                 logger.debug("smarts_with_indices: %s", smarts_with_indices)
@@ -175,19 +175,19 @@ class SubstructureMatcher:
         Returns:
             Set of building block SMILES strings that the fragment matches.
         """
-        logger.info(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
+        logger.debug(f"[SubstructureMatcher] Matching fragment {fragment} to building blocks")
         if self.parallelize and len(self.BBs) >= self.num_cores * self.core_factor:
-            logger.info(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
+            logger.debug(f"[SubstructureMatcher] Using {self.num_cores} cores for parallel processing")
             with Pool(processes=self.num_cores) as pool:
                 results = pool.starmap(
                     self.is_strict_substructure, [(fragment, bb, self.useChirality) for bb in self.BBs]
                 )
-                strict_substructure_BBs = set(bb for bb, result in zip(self.BBs, results) if result)
+                strict_substructure_BBs = set(bb for bb, result in zip(self.BBs, results, strict=False) if result)
 
         else:
             # Fallback to single-threaded execution
             strict_substructure_BBs = set(
                 bb for bb in self.BBs if self.is_strict_substructure(fragment, bb, self.useChirality)
             )
-        logger.info(f"[SubstructureMatcher] Found {len(strict_substructure_BBs)} matching building")
+        logger.debug(f"[SubstructureMatcher] Found {len(strict_substructure_BBs)} matching building")
         return strict_substructure_BBs
