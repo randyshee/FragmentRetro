@@ -4,8 +4,13 @@ from pathlib import Path
 from typing import cast
 
 import ipywidgets as widgets
-from app.gui.state import AppState
-from app.gui.widgets import (
+from IPython.display import display
+from PIL.Image import Image as PILImage
+from rdkit import Chem
+from rdkit.Chem import Draw
+
+from fragmentretro.app.gui.state import AppState
+from fragmentretro.app.gui.widgets import (
     core_factor_input,
     display_button,
     file_path_input,
@@ -27,18 +32,13 @@ from app.gui.widgets import (
     sort_smiles_button,
     target_smiles_input,
 )
-from app.logging_config import logger
-from IPython.display import display
-from PIL.Image import Image as PILImage
-from rdkit import Chem
-from rdkit.Chem import Draw
-
 from fragmentretro.fragmenter import BRICSFragmenter, rBRICSFragmenter
 from fragmentretro.fragmenter_base import Fragmenter
 from fragmentretro.retrosynthesis import Retrosynthesis
 from fragmentretro.solutions import RetrosynthesisSolution
 from fragmentretro.typing import CombType, SolutionType
 from fragmentretro.utils.helpers import sort_by_heavy_atoms
+from fragmentretro.utils.logging_config import logger
 
 
 class GuiController:

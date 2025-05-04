@@ -1,5 +1,6 @@
 import ipywidgets as widgets
-from app.gui.widgets import (
+
+from fragmentretro.app.gui.widgets import (
     core_factor_input,
     display_button,
     file_path_input,
