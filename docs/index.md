@@ -89,4 +89,4 @@ uv pip install -e ".[dev]"
 ## License
 
 - Code: MIT License
-- Paper content ([arXiv preprint](https://arxiv.org/abs/xxxxx)): CC-BY 4.0
+- Paper content ([arXiv preprint](https://arxiv.org/abs/2509.15409)): CC-BY 4.0
