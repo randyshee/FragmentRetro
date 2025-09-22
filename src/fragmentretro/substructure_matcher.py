@@ -80,7 +80,7 @@ class SubstructureMatcher:
         smarts = re.sub(r":\d+\]", "]", smarts)
         # sub [#0] with *, which is a wildcard for any atom
         smarts = re.sub(r"\[\d*\#0\]", "*", smarts)
-        return cast(str, smarts)
+        return smarts
 
     @staticmethod
     def addH_to_wildcard_neighbors(fragment_smarts: str) -> str:
