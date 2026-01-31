@@ -8,9 +8,29 @@
 
 ## Overview
 
-FragmentRetro is a fragment-based retrosynthetic method with quadratic complexity, offering a scalable alternative to tree search and [DirectMultiStep](https://github.com/batistagroup/DirectMultiStep/tree/main). The preprint for this work was posted on [arXiv](https://arxiv.org/abs/2509.15409).
+This work has been published in [*J. Chem. Theory Comput.*](https://doi.org/10.1021/acs.jctc.5c01632). The preprint for this work was posted on [arXiv](https://arxiv.org/abs/2509.15409).
 
-See our [documentation](./docs/index.md) for installation, stock preprocessing, and usage examples.
+FragmentRetro is a fragment-based retrosynthetic method with quadratic complexity, offering a scalable alternative to tree search and [DirectMultiStep](https://github.com/batistagroup/DirectMultiStep/tree/master).
+
+See our [documentation](https://fragment.batistalab.com/) for installation, stock preprocessing, and usage examples. We also provide a [GUI](./docs/app/) for FragmentRetro.
+
+## Citing
+
+If you use FragmentRetro in an academic project, please consider citing our publication in [*J. Chem. Theory Comput.*](https://doi.org/10.1021/acs.jctc.5c01632):
+
+```tex
+@article{fragmentretro,
+    author = {Shee, Yu and Smaldone, Anthony M. and Morgunov, Anton and Kyro, Gregory W. and Batista, Victor S.},
+    title = {FragmentRetro: A Quadratic Retrosynthetic Method Based on Fragmentation Algorithms},
+    journal = {Journal of Chemical Theory and Computation},
+    volume = {22},
+    number = {2},
+    pages = {972–-980},
+    year = {2026},
+    doi = {10.1021/acs.jctc.5c01632},
+    url = {https://pubs.acs.org/doi/10.1021/acs.jctc.5c01632},
+}
+```
 
 ## Licenses
 
